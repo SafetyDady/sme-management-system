@@ -1,0 +1,21 @@
+# Railway ignore files - similar to .gitignore but for Railway deployments
+node_modules/
+.git/
+*.log
+.env.local
+.env.development
+.env.test
+coverage/
+.nyc_output/
+.cache/
+.parcel-cache/
+.vscode/
+.DS_Store
+*.tgz
+*.tar.gz
+
+# Keep these for Railway deployment
+!dist/
+!package*.json
+!Dockerfile
+!.env.railway
