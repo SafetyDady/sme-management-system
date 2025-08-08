@@ -10,7 +10,12 @@ from .models import User
 from dotenv import load_dotenv
 import os
 
+# Added structured logger
+from .logging_config import get_logger
+
 load_dotenv()
+
+logger = get_logger("auth")
 
 # Try multiple environment variable names for SECRET_KEY
 SECRET_KEY = os.getenv("JWT_SECRET") or os.getenv("SECRET_KEY") or os.getenv("SECRET")
@@ -25,9 +30,24 @@ if isinstance(SECRET_KEY, bytes):
 # Ensure it's a clean string without extra quotes or whitespace
 SECRET_KEY = str(SECRET_KEY).strip().strip('"').strip("'")
 
-# Debug logging for production
-print(f"SECRET_KEY loaded: {type(SECRET_KEY)}, length: {len(SECRET_KEY)}")
-print(f"SECRET_KEY preview: {SECRET_KEY[:10]}...{SECRET_KEY[-10:]}")  # Safe preview
+# Environment flags
+APP_ENV = (os.getenv("ENV") or os.getenv("APP_ENV") or os.getenv("ENVIRONMENT") or "development").lower()
+DEBUG_MODE = (os.getenv("DEBUG") or "false").lower() in ("1", "true", "yes", "on")
+IS_PRODUCTION = APP_ENV in ("prod", "production")
+
+# Fail fast if running in production without a proper secret
+if IS_PRODUCTION and (not SECRET_KEY or SECRET_KEY == "your-super-secret-key-change-in-production-very-long-and-secure-key-12345"):
+    # Log and raise to prevent insecure startup in production
+    logger.error("SECRET_KEY is missing or using insecure default in production", env=APP_ENV)
+    raise RuntimeError("SECRET_KEY must be set via environment in production")
+
+# Minimal, non-sensitive logging
+if DEBUG_MODE:
+    try:
+        logger.info("JWT secret key loaded", env=APP_ENV, length=len(SECRET_KEY))
+    except Exception:
+        # In case SECRET_KEY is not a normal string
+        logger.info("JWT secret key loaded", env=APP_ENV)
 
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
@@ -39,7 +59,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
         return pwd_context.verify(plain_password, hashed_password)
     except Exception as e:
-        print(f"Password verification error: {str(e)}")
+        logger.error("Password verification error", error=str(e))
         return False
 
 def get_password_hash(password: str) -> str:
@@ -68,20 +88,17 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         encoded_jwt = jwt.encode(to_encode, key_to_use, algorithm=ALGORITHM)
         return encoded_jwt
     except Exception as e:
-        print(f"JWT encoding error with string key: {str(e)}")
-        print(f"SECRET_KEY type: {type(SECRET_KEY)}")
-        print(f"SECRET_KEY value: {SECRET_KEY}")
-        print(f"key_to_use type: {type(key_to_use)}")
-        print(f"key_to_use length: {len(key_to_use)}")
+        logger.warning("JWT encoding error with string key; retrying with bytes", error=str(e), key_type=type(key_to_use).__name__)
         
         # Try with bytes conversion as fallback
         try:
             key_bytes = key_to_use.encode('utf-8')
             encoded_jwt = jwt.encode(to_encode, key_bytes, algorithm=ALGORITHM)
-            print("SUCCESS: JWT encoding worked with bytes key")
+            if DEBUG_MODE:
+                logger.debug("JWT encoding succeeded with bytes key")
             return encoded_jwt
         except Exception as e2:
-            print(f"JWT encoding error with bytes key: {str(e2)}")
+            logger.error("JWT encoding failed with bytes key", error=str(e2))
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Token creation failed: {str(e)}"
@@ -101,14 +118,16 @@ def verify_token(token: str):
         try:
             payload = jwt.decode(token, key_to_use, algorithms=[ALGORITHM])
         except Exception as e1:
-            print(f"JWT decode error with string key: {str(e1)}")
+            if DEBUG_MODE:
+                logger.debug("JWT decode error with string key; retrying with bytes", error=str(e1))
             # Try with bytes key as fallback
             try:
                 key_bytes = key_to_use.encode('utf-8')
                 payload = jwt.decode(token, key_bytes, algorithms=[ALGORITHM])
-                print("SUCCESS: JWT decode worked with bytes key")
+                if DEBUG_MODE:
+                    logger.debug("JWT decode succeeded with bytes key")
             except Exception as e2:
-                print(f"JWT decode error with bytes key: {str(e2)}")
+                logger.error("JWT decode failed with bytes key", error=str(e2))
                 raise e1  # Raise original error
         
         username: str = payload.get("sub")
@@ -120,9 +139,7 @@ def verify_token(token: str):
             )
         return username
     except JWTError as e:
-        print(f"JWT decode error: {str(e)}")
-        print(f"SECRET_KEY type: {type(SECRET_KEY)}")
-        print(f"Token preview: {token[:20]}...")
+        logger.warning("JWT decode error", error=str(e))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
