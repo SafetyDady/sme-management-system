@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from datetime import timedelta, datetime
 from typing import List
 import os
@@ -20,7 +21,7 @@ from app.models import User, PasswordResetToken
 from app.models_all import *  # Import all SME models
 
 # Import schemas
-from app.schemas import UserLogin, Token, User as UserSchema, HealthCheck, ErrorResponse
+from app.schemas import UserLogin, Token, User as UserSchema, ErrorResponse
 
 # Import authentication
 from app.auth import create_access_token, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES
@@ -143,33 +144,32 @@ async def root():
         "docs_url": "/docs" if os.getenv("DEBUG", "False").lower() == "true" else "disabled"
     }
 
-# Health check endpoint
-@app.get("/health", response_model=HealthCheck)
+# Health check endpoint - Simple pattern like auth-system
+@app.get("/health")
 @rate_limit_public
-async def health_check(request: Request, db: Session = Depends(get_db)):
-    """Health check endpoint for monitoring"""
+async def health_check(request: Request):
+    """Enhanced health check endpoint"""
+    
+    # Basic health check
+    health_status = {
+        "status": "healthy",
+        "message": "SME Management System is running",
+        "version": "1.0.0",
+        "timestamp": datetime.utcnow().isoformat()
+    }
+    
+    # Database connectivity check
     try:
-        # Test database connection
-        db.execute("SELECT 1")
-        db_status = "healthy"
+        db = next(get_db())
+        # Simple query to test database
+        db.execute(text("SELECT 1"))
+        health_status["database"] = "connected"
     except Exception as e:
-        logger.error(f"Database health check failed: {e}")
-        db_status = "unhealthy"
-        
-    return HealthCheck(
-        status="healthy" if db_status == "healthy" else "unhealthy",
-        message="SME Management System is running" if db_status == "healthy" else "Database connection failed",
-        timestamp=datetime.utcnow(),
-        version="1.0.0",
-        database=db_status,
-        modules={
-            "authentication": "active",
-            "hr": "ready" if os.getenv("ENABLE_HR_MODULE", "True").lower() == "true" else "disabled",
-            "projects": "ready" if os.getenv("ENABLE_PROJECT_MODULE", "True").lower() == "true" else "disabled",
-            "inventory": "ready" if os.getenv("ENABLE_INVENTORY_MODULE", "True").lower() == "true" else "disabled",
-            "financial": "ready" if os.getenv("ENABLE_FINANCIAL_MODULE", "True").lower() == "true" else "disabled"
-        }
-    )
+        health_status["status"] = "unhealthy"
+        health_status["database"] = "disconnected"
+        health_status["error"] = str(e)
+    
+    return health_status
 
 # Login endpoint
 @app.post("/api/login", response_model=Token)
