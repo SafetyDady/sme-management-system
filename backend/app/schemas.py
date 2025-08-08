@@ -22,9 +22,9 @@ class UserLogin(BaseModel):
         if len(v) < 3 or len(v) > 50:
             raise ValueError('Username must be between 3 and 50 characters')
         
-        # Check format - alphanumeric, underscore, hyphen only
-        if not re.match(r'^[a-zA-Z0-9_-]+$', v):
-            raise ValueError('Username can only contain letters, numbers, underscores, and hyphens')
+        # Check format - allow alphanumeric, underscore, hyphen, @ and . for email format
+        if not re.match(r'^[a-zA-Z0-9_@.-]+$', v):
+            raise ValueError('Username can only contain letters, numbers, underscores, hyphens, @ and .')
         
         return v.lower()  # Convert to lowercase for consistency
     
