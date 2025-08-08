@@ -232,7 +232,7 @@ async def login(request: Request, user_credentials: UserLogin, db: Session = Dep
     except HTTPException:
         raise
     except Exception as e:
-        log_error("login_error", request, str(e))
+        log_error(e, {"request_path": str(request.url), "method": request.method, "context": "login_error"})
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
