@@ -189,7 +189,12 @@ async def login(request: Request, user_credentials: UserLogin, db: Session = Dep
         # Authenticate user
         user = authenticate_user(db, user_credentials.username, user_credentials.password)
         if not user:
-            log_auth_event("login_failed", request, {"username": user_credentials.username})
+            log_auth_event(
+                "login_failed",
+                username=user_credentials.username,
+                success=False,
+                details={"reason": "invalid_credentials"}
+            )
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect username or password",
@@ -197,7 +202,12 @@ async def login(request: Request, user_credentials: UserLogin, db: Session = Dep
             )
         
         if not user.is_active:
-            log_auth_event("login_inactive_user", request, {"username": user_credentials.username})
+            log_auth_event(
+                "login_inactive_user",
+                username=user_credentials.username,
+                success=False,
+                details={"reason": "inactive_user"}
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Inactive user"
@@ -215,7 +225,12 @@ async def login(request: Request, user_credentials: UserLogin, db: Session = Dep
         user.last_login = datetime.utcnow()
         db.commit()
         
-        log_auth_event("login_success", request, {"username": user.username, "role": user.role})
+        log_auth_event(
+            "login_success",
+            username=user.username,
+            success=True,
+            details={"role": user.role}
+        )
         
         return {
             "access_token": access_token, 
