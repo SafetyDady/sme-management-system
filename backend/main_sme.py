@@ -176,19 +176,29 @@ async def health_check(request: Request, db: Session = Depends(get_db)):
 async def login(request: Request, user_credentials: UserLogin, db: Session = Depends(get_db)):
     """Authenticate user and return access token"""
     try:
+        print(f"[DEBUG] Login attempt - Username: {user_credentials.username}")
+        print(f"[DEBUG] Password length: {len(user_credentials.password)}")
+        
         # Validate input
         validator = InputValidator()
+        print(f"[DEBUG] Starting username validation...")
         # Accept username (not email) for authentication
         if not validator.validate_username(user_credentials.username):
+            print(f"[DEBUG] Username validation failed")
             log_security_event("invalid_username_format", {"username": user_credentials.username}, request)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid username format"
             )
+        print(f"[DEBUG] Username validation passed")
         
         # Authenticate user
+        print(f"[DEBUG] Starting user authentication...")
         user = authenticate_user(db, user_credentials.username, user_credentials.password)
+        print(f"[DEBUG] User authentication result: {user is not False}")
+        
         if not user:
+            print(f"[DEBUG] Authentication failed - user not found or wrong password")
             log_auth_event(
                 "login_failed",
                 username=user_credentials.username,
@@ -201,7 +211,9 @@ async def login(request: Request, user_credentials: UserLogin, db: Session = Dep
                 headers={"WWW-Authenticate": "Bearer"},
             )
         
+        print(f"[DEBUG] User found: {user.username}, Active: {user.is_active}")
         if not user.is_active:
+            print(f"[DEBUG] User is inactive")
             log_auth_event(
                 "login_inactive_user",
                 username=user_credentials.username,
@@ -214,16 +226,20 @@ async def login(request: Request, user_credentials: UserLogin, db: Session = Dep
             )
         
         # Create access token
+        print(f"[DEBUG] Creating access token...")
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
             data={"sub": user.username, "user_id": user.id, "role": user.role}, 
             expires_delta=access_token_expires
         )
+        print(f"[DEBUG] Access token created successfully")
         
         # Update last login
+        print(f"[DEBUG] Updating last login...")
         from datetime import datetime
         user.last_login = datetime.utcnow()
         db.commit()
+        print(f"[DEBUG] Last login updated")
         
         log_auth_event(
             "login_success",
@@ -232,16 +248,21 @@ async def login(request: Request, user_credentials: UserLogin, db: Session = Dep
             details={"role": user.role}
         )
         
-        return {
+        print(f"[DEBUG] Preparing response object...")
+        response_data = {
             "access_token": access_token, 
             "token_type": "bearer",
             "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
             "user": user
         }
+        print(f"[DEBUG] Response prepared, returning...")
+        return response_data
         
     except HTTPException:
+        print(f"[DEBUG] HTTPException caught, re-raising")
         raise
     except Exception as e:
+        print(f"[DEBUG] Unexpected exception: {type(e).__name__}: {str(e)}")
         log_error(e, {"request_path": str(request.url), "method": request.method, "context": "login_error"})
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
