@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.orm import Session
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import List
 import os
 import uuid
@@ -158,7 +158,7 @@ async def health_check(request: Request, db: Session = Depends(get_db)):
         
     return HealthCheck(
         status="healthy" if db_status == "healthy" else "unhealthy",
-        timestamp=json.loads(json.dumps({"timestamp": "now"}, default=str))["timestamp"],
+        timestamp=datetime.utcnow(),
         version="1.0.0",
         database=db_status,
         modules={
@@ -296,7 +296,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     """Handle general exceptions"""
-    log_error("general_error", request, str(exc))
+    log_error(exc, {"request_path": str(request.url), "method": request.method})
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": "Internal server error"}
