@@ -128,12 +128,14 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 async def general_exception_handler(request: Request, exc: Exception):
     """Handle unexpected exceptions"""
     request_id = str(uuid.uuid4())
-    
-    log_error(exc, {
-        "request_id": request_id,
-        "path": request.url.path,
-        "method": request.method
-    })
+    try:
+        log_error(exc, {
+            "request_id": request_id,
+            "path": str(request.url.path),
+            "method": str(request.method)
+        })
+    except Exception as le:
+        print(f"Logging failed: {le}")
     
     # Don't expose internal error details in production
     environment = os.getenv('ENVIRONMENT', 'development')

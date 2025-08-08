@@ -277,17 +277,36 @@ async def get_module_status(request: Request, current_user: User = Depends(get_c
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Handle validation errors"""
-    log_error("validation_error", request, str(exc))
+    # Correct logging: pass Exception and context dict
+    try:
+        log_error(exc, {
+            "request_path": str(request.url),
+            "method": request.method,
+            "context": "validation_error",
+            "errors": [str(e) for e in exc.errors()] if hasattr(exc, "errors") else str(exc)
+        })
+    except Exception as le:
+        print(f"Logging failed in validation_exception_handler: {le}")
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={"detail": "Validation error", "errors": exc.errors()}
+        content={"detail": "Validation error", "errors": exc.errors() if hasattr(exc, "errors") else []}
     )
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     """Handle HTTP exceptions"""
     if exc.status_code >= 500:
-        log_error("http_error", request, f"{exc.status_code}: {exc.detail}")
+        # Correct logging: pass Exception and context dict
+        try:
+            log_error(exc, {
+                "request_path": str(request.url),
+                "method": request.method,
+                "context": "http_error",
+                "status_code": exc.status_code,
+                "detail": exc.detail
+            })
+        except Exception as le:
+            print(f"Logging failed in http_exception_handler: {le}")
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail}

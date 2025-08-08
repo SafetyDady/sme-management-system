@@ -165,7 +165,6 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 async def general_exception_handler(request: Request, exc: Exception):
     """Handle unexpected exceptions"""
     request_id = str(uuid.uuid4())
-    
     # Safely log error without causing JSON serialization issues
     try:
         log_error(exc, {
