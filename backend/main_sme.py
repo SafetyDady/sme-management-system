@@ -236,13 +236,7 @@ async def login(request: Request, user_credentials: UserLogin, db: Session = Dep
             "access_token": access_token, 
             "token_type": "bearer",
             "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-            "user": {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "role": user.role,
-                "is_active": user.is_active
-            }
+            "user": user
         }
         
     except HTTPException:
