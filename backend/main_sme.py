@@ -158,6 +158,7 @@ async def health_check(request: Request, db: Session = Depends(get_db)):
         
     return HealthCheck(
         status="healthy" if db_status == "healthy" else "unhealthy",
+        message="SME Management System is running" if db_status == "healthy" else "Database connection failed",
         timestamp=datetime.utcnow(),
         version="1.0.0",
         database=db_status,

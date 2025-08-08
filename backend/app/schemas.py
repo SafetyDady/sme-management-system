@@ -2,7 +2,7 @@
 Enhanced Pydantic schemas with comprehensive validation
 """
 from pydantic import BaseModel, EmailStr, validator, Field
-from typing import Optional
+from typing import Optional, Dict, Any
 from datetime import datetime
 import re
 
@@ -167,6 +167,8 @@ class HealthCheck(BaseModel):
     message: str = "Auth system is running"
     timestamp: datetime = Field(default_factory=datetime.now)
     version: str = "1.0.0"
+    database: Optional[str] = None
+    modules: Optional[Dict[str, Any]] = None
 
 class ErrorResponse(BaseModel):
     error: str
