@@ -179,7 +179,7 @@ async def login(request: Request, user_credentials: UserLogin, db: Session = Dep
         # Validate input
         validator = InputValidator()
         if not validator.validate_email(user_credentials.username):
-            log_security_event("invalid_email_format", request, {"email": user_credentials.username})
+            log_security_event("invalid_email_format", {"email": user_credentials.username}, request)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid email format"
