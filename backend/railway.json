@@ -1,13 +1,30 @@
 {
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
-    "builder": "nixpacks"
+    "builder": "nixpacks",
+    "buildCommand": "pip install -r requirements.txt",
+    "watchPatterns": [
+      "**/*.py",
+      "requirements.txt",
+      "alembic/**/*"
+    ]
   },
   "deploy": {
-    "startCommand": "uvicorn main:app --host 0.0.0.0 --port $PORT",
+    "startCommand": "uvicorn main_sme:app --host 0.0.0.0 --port $PORT",
     "healthcheckPath": "/health",
-    "healthcheckTimeout": 300,
-    "restartPolicyType": "on_failure"
+    "healthcheckTimeout": 30,
+    "restartPolicyType": "on_failure",
+    "restartPolicyMaxRetries": 3
+  },
+  "environments": {
+    "production": {
+      "variables": {
+        "ENVIRONMENT": "production",
+        "DEBUG": "False",
+        "LOG_LEVEL": "INFO",
+        "LOG_FORMAT": "json"
+      }
+    }
   }
 }
 
