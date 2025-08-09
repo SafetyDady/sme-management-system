@@ -132,9 +132,22 @@ class TokenData(BaseModel):
     username: Optional[str] = None
 
 class UserUpdate(BaseModel):
+    username: Optional[str] = Field(None, min_length=3, max_length=50)
     email: Optional[EmailStr] = None
     role: Optional[str] = Field(None, pattern="^(user|admin1|admin2|superadmin)$")
     is_active: Optional[bool] = None
+    
+    @validator('username')
+    def validate_username(cls, v):
+        if v:
+            v = v.strip()
+            if len(v) < 3:
+                raise ValueError('Username must be at least 3 characters long')
+            if len(v) > 50:
+                raise ValueError('Username must be less than 50 characters')
+            if not v.replace('_', '').replace('-', '').isalnum():
+                raise ValueError('Username can only contain letters, numbers, underscores, and hyphens')
+        return v
     
     @validator('email')
     def validate_email(cls, v):
