@@ -10,6 +10,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import UserManagement from './pages/UserManagement';
+import Profile from './pages/Profile';
 import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 
@@ -47,10 +48,7 @@ function App() {
               <Route path="/profile" element={
                 <ProtectedRoute>
                   <Layout>
-                    <div className="text-center py-12">
-                      <h1 className="text-2xl font-bold text-gray-900 mb-4">Profile</h1>
-                      <p className="text-gray-600">Coming soon in Phase 3...</p>
-                    </div>
+                    <Profile />
                   </Layout>
                 </ProtectedRoute>
               } />
