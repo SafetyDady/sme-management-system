@@ -16,12 +16,14 @@ const PORT = process.env.PORT || 3000;
 // Serve static files
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// API Proxy to Backend
+// API Proxy to Backend - Handle both /api and /auth routes
 app.use('/api', createProxyMiddleware({
   target: 'https://web-production-5b6ab.up.railway.app',
   changeOrigin: true,
   pathRewrite: {
-    '^/api': '', // Remove /api prefix when forwarding
+    '^/api/login': '/auth/login',     // Map login to auth endpoint
+    '^/api/auth': '/auth',           // Map auth routes
+    '^/api': '/api',                 // Keep other API routes as-is
   },
   onProxyReq: (proxyReq, req, res) => {
     console.log('Proxying:', req.method, req.url, '->', proxyReq.path);
@@ -29,6 +31,19 @@ app.use('/api', createProxyMiddleware({
   onError: (err, req, res) => {
     console.error('Proxy error:', err);
     res.status(500).json({ error: 'Proxy error', message: err.message });
+  }
+}));
+
+// Auth Proxy to Backend - Direct auth routes  
+app.use('/auth', createProxyMiddleware({
+  target: 'https://web-production-5b6ab.up.railway.app',
+  changeOrigin: true,
+  onProxyReq: (proxyReq, req, res) => {
+    console.log('Auth Proxying:', req.method, req.url, '->', proxyReq.path);
+  },
+  onError: (err, req, res) => {
+    console.error('Auth Proxy error:', err);
+    res.status(500).json({ error: 'Auth Proxy error', message: err.message });
   }
 }));
 
