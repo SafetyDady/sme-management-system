@@ -9,10 +9,11 @@ const getApiBaseURL = () => {
     return ''; // Let Vite proxy handle /api/* routes
   }
   
-  // Production mode - Railway Proxy Mode
+  // Production mode - Railway Proxy Mode  
+  // ใช้ empty string เพราะ Railway proxy จะจัดการ /api/* routes
   if (window.location.hostname.includes('railway.app') || 
       process.env.NODE_ENV === 'production') {
-    return '/api'; // Uses Railway proxy at /api/*
+    return ''; // Railway proxy handles /api/* routes directly
   }
   
   return import.meta.env.VITE_API_URL || 'http://localhost:3000';
