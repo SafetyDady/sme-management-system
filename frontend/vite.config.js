@@ -36,14 +36,26 @@ export default defineConfig(({ command, mode }) => {
       chunkSizeWarningLimit: 1000
     },
     server: {
-      port: 5174,
+      port: 3001,
       strictPort: true,
       proxy: command === 'serve' ? {
         '/api': {
-          target: 'https://web-production-5b6ab.up.railway.app',
+          target: process.env.VITE_BACKEND_URL || 'https://sme-management-system-production.up.railway.app',
           changeOrigin: true,
           secure: true,
-          rewrite: (path) => path.replace(/^\/api/, ''),
+          // ไม่ต้อง rewrite เพราะ backend มี /api/login อยู่แล้ว
+          // rewrite: (path) => path.replace(/^\/api/, ''),
+          configure: (proxy, _options) => {
+            proxy.on('error', (err, _req, _res) => {
+              console.log('proxy error', err);
+            });
+            proxy.on('proxyReq', (proxyReq, req, _res) => {
+              console.log('Sending Request to the Target:', req.method, req.url);
+            });
+            proxy.on('proxyRes', (proxyRes, req, _res) => {
+              console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+            });
+          },
         },
       } : undefined,
     },

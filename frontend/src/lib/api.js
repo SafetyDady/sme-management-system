@@ -131,7 +131,8 @@ api.interceptors.response.use(
 export const authAPI = {
   login: async (credentials) => {
     try {
-      const response = await api.post('/auth/login', credentials);
+      // ใช้ /api/login เพื่อให้ตรงกับ backend endpoint
+      const response = await api.post('/api/login', credentials);
       return response.data;
     } catch (error) {
       throw error;
@@ -140,7 +141,8 @@ export const authAPI = {
 
   getCurrentUser: async () => {
     try {
-      const response = await api.get('/auth/me');
+      // ใช้ /api/me เพื่อให้ตรงกับ backend endpoint  
+      const response = await api.get('/api/me');
       return response.data;
     } catch (error) {
       throw error;
