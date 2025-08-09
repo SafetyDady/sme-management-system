@@ -50,6 +50,38 @@ async def lifespan(app: FastAPI):
     """Application lifespan events"""
     # Startup
     logger.info("Application starting up")
+    
+    # Initialize admin user if not exists
+    try:
+        from app.database import SessionLocal
+        from app.auth import get_password_hash
+        from datetime import datetime
+        
+        db = SessionLocal()
+        try:
+            # Check if admin user exists
+            admin_user = db.query(User).filter(User.username == "admin").first()
+            if not admin_user:
+                # Create default admin user
+                hashed_password = get_password_hash("admin123")
+                admin_user = User(
+                    username="admin",
+                    email="admin@sme.local",
+                    hashed_password=hashed_password,
+                    role="superadmin",
+                    is_active=True,
+                    created_at=datetime.utcnow()
+                )
+                db.add(admin_user)
+                db.commit()
+                logger.info("✅ Created default admin user: admin / admin123")
+            else:
+                logger.info("✅ Admin user already exists")
+        finally:
+            db.close()
+    except Exception as e:
+        logger.error(f"❌ Error initializing admin user: {e}")
+    
     yield
     # Shutdown
     logger.info("Application shutting down")
