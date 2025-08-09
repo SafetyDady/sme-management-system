@@ -43,7 +43,7 @@ export default defineConfig(({ command, mode }) => {
           target: process.env.VITE_BACKEND_URL || 'https://sme-management-system-production.up.railway.app',
           changeOrigin: true,
           secure: true,
-          // ไม่ต้อง rewrite เพราะ backend มี /api/login อยู่แล้ว
+          // ไม่ต้อง rewrite เพราะ backend มี /api/login และ /api/users อยู่แล้ว
           // rewrite: (path) => path.replace(/^\/api/, ''),
           configure: (proxy, _options) => {
             proxy.on('error', (err, _req, _res) => {
