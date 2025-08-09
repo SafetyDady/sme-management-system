@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
 from app.models import User
-from models.user import UserCreate, UserUpdate, UserResponse, PasswordChange, UserStatusUpdate
+from app.schemas import UserCreate, UserUpdate, PasswordChange
+from models.user import UserResponse, UserStatusUpdate
 from app.auth import get_current_user
 from dependencies.auth import require_admin_or_superadmin, require_superadmin
 from passlib.context import CryptContext
