@@ -438,6 +438,92 @@ async def validate_token(request: Request, current_user: User = Depends(get_curr
 async def logout(request: Request, current_user: User = Depends(get_current_user)):
     """Logout endpoint (for logging purposes)"""
     
+    # Log logout event
+    log_security_event(
+        "logout",
+        request, 
+        {"username": current_user.username},
+        "User logged out"
+    )
+    
+    return {"message": "Logged out successfully"}
+
+@app.post("/admin/init-admin")
+async def init_admin_user(db: Session = Depends(get_db)):
+    """Initialize admin user if not exists - for production setup"""
+    try:
+        # Check if admin user already exists
+        admin_user = db.query(User).filter(User.username == "admin").first()
+        if admin_user:
+            return {
+                "message": "Admin user already exists",
+                "username": admin_user.username,
+                "role": admin_user.role,
+                "is_active": admin_user.is_active,
+                "created_at": admin_user.created_at.isoformat()
+            }
+        
+        # Create admin user
+        hashed_password = get_password_hash("admin123")
+        admin_user = User(
+            username="admin",
+            email="admin@company.com",
+            hashed_password=hashed_password,
+            role="SuperAdmin",
+            is_active=True
+        )
+        
+        db.add(admin_user)
+        db.commit()
+        db.refresh(admin_user)
+        
+        logger.info(f"Admin user created: {admin_user.username}")
+        
+        return {
+            "message": "Admin user created successfully",
+            "username": admin_user.username,
+            "role": admin_user.role,
+            "is_active": admin_user.is_active,
+            "created_at": admin_user.created_at.isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating admin user: {str(e)}")
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to create admin user: {str(e)}"
+        )
+
+@app.get("/admin/check-users")
+async def check_users(db: Session = Depends(get_db)):
+    """Check existing users in database - for debugging"""
+    try:
+        users = db.query(User).all()
+        users_info = []
+        
+        for user in users:
+            users_info.append({
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "role": user.role,
+                "is_active": user.is_active,
+                "created_at": user.created_at.isoformat() if user.created_at else None
+            })
+        
+        return {
+            "total_users": len(users),
+            "users": users_info
+        }
+        
+    except Exception as e:
+        logger.error(f"Error checking users: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to check users: {str(e)}"
+        )
+    
     log_auth_event(
         "logout",
         username=current_user.username,
