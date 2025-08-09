@@ -10,7 +10,7 @@ from dependencies.auth import require_admin_or_superadmin, require_superadmin
 from passlib.context import CryptContext
 from datetime import datetime
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(tags=["users"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 @router.get("/", response_model=List[UserResponse])
