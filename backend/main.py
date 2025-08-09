@@ -425,7 +425,7 @@ if os.getenv('ENVIRONMENT', 'development') == 'development':
         }
 
 # Include routers
-app.include_router(users.router)
+app.include_router(users.router, prefix="/api")
 app.include_router(auth.router)
 
 if __name__ == "__main__":
