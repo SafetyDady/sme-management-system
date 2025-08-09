@@ -54,7 +54,7 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`🚀 Frontend server running on port ${PORT}`);
-  console.log(`📡 API proxy: /api/* -> https://web-production-5b6ab.up.railway.app/*`);
+  console.log(`📡 API proxy: /api/* -> https://sme-management-system-production.up.railway.app/*`);
 });
 
 export default app;
