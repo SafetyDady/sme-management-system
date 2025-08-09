@@ -114,6 +114,11 @@ async def update_current_user_profile(
     if 'role' in update_data and current_user.role not in ['admin', 'superadmin']:
         del update_data['role']
     
+    # Hash password if provided
+    if 'password' in update_data:
+        update_data['hashed_password'] = pwd_context.hash(update_data['password'])
+        del update_data['password']  # Remove plain password
+    
     for field, value in update_data.items():
         setattr(current_user, field, value)
     
@@ -198,6 +203,12 @@ async def update_user(
     
     # Update user
     update_data = user_data.dict(exclude_unset=True)
+    
+    # Hash password if provided
+    if 'password' in update_data:
+        update_data['hashed_password'] = pwd_context.hash(update_data['password'])
+        del update_data['password']  # Remove plain password
+    
     for field, value in update_data.items():
         setattr(user, field, value)
     

@@ -134,6 +134,7 @@ class TokenData(BaseModel):
 class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50)
     email: Optional[EmailStr] = None
+    password: Optional[str] = Field(None, min_length=6, max_length=128)
     role: Optional[str] = Field(None, pattern="^(user|admin1|admin2|superadmin)$")
     is_active: Optional[bool] = None
     
@@ -154,6 +155,15 @@ class UserUpdate(BaseModel):
         if v and len(v) > 254:
             raise ValueError('Email address is too long')
         return v.lower() if v else v
+    
+    @validator('password')
+    def validate_password(cls, v):
+        if v:
+            if len(v) < 6:
+                raise ValueError('Password must be at least 6 characters long')
+            if len(v) > 128:
+                raise ValueError('Password must be less than 128 characters')
+        return v
 
 class PasswordChange(BaseModel):
     current_password: str = Field(..., min_length=1, max_length=128)
