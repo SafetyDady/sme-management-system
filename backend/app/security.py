@@ -138,6 +138,10 @@ def get_cors_origins() -> list:
     
     # Production origins with wildcard support
     production_origins = [
+        # Frontend production URL
+        "https://sme-management-frontend-production.up.railway.app",
+        
+        # Other domains (if needed later)
         "https://yourdomain.com",
         "https://www.yourdomain.com",
         "https://app.yourdomain.com",

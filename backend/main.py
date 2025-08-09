@@ -75,16 +75,24 @@ app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        # Production Frontend URL
+        "https://sme-management-frontend-production.up.railway.app",
+        
+        # Development origins  
         "http://localhost:3000",
+        "http://localhost:3001",
         "http://localhost:5173", 
         "http://localhost:5174",
         "https://localhost:3000",
+        "https://localhost:3001",
         "https://localhost:5173", 
         "https://localhost:5174",
         "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:5174",
         "https://127.0.0.1:3000",
+        "https://127.0.0.1:3001",
         "https://127.0.0.1:5173",
         "https://127.0.0.1:5174"
     ],
