@@ -18,7 +18,7 @@ app.use(express.static(path.join(__dirname, 'dist')));
 
 // API Proxy to Backend - Handle both /api and /auth routes
 app.use('/api', createProxyMiddleware({
-  target: 'https://sme-management-system-production.up.railway.app',
+  target: 'https://web-production-5b6ab.up.railway.app',
   changeOrigin: true,
   pathRewrite: {
     '^/api/login': '/auth/login',     // Map login to auth endpoint
@@ -36,7 +36,7 @@ app.use('/api', createProxyMiddleware({
 
 // Auth Proxy to Backend - Direct auth routes  
 app.use('/auth', createProxyMiddleware({
-  target: 'https://sme-management-system-production.up.railway.app',
+  target: 'https://web-production-5b6ab.up.railway.app',
   changeOrigin: true,
   onProxyReq: (proxyReq, req, res) => {
     console.log('Auth Proxying:', req.method, req.url, '->', proxyReq.path);
