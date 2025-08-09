@@ -15,7 +15,7 @@ from passlib.context import CryptContext
 # Add the app directory to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from app.database import Base, get_database_url
+from app.database import Base, engine
 from app.models_all import *  # Import all models
 
 # Password hashing
@@ -119,8 +119,10 @@ def main():
     """Main initialization function"""
     print("🚀 Initializing SME Management System Database...")
     
-    # Get database URL
-    database_url = get_database_url()
+    # Get database URL from environment
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise ValueError("DATABASE_URL environment variable not set")
     print(f"📍 Database URL: {database_url[:50]}...")
     
     try:
