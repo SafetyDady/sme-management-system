@@ -237,7 +237,7 @@ export const userAPI = {
   getUsers: async () => {
     console.log('🔍 Calling userAPI.getUsers()...');
     try {
-      const response = await api.get('/api/users/', { timeout: 10000 });
+      const response = await api.get('/api/users', { timeout: 10000 });
       console.log('✅ Users API Success:', response.data);
       return response.data;
     } catch (error) {
@@ -255,6 +255,9 @@ export const userAPI = {
       }
       if (!error.response) {
         throw new Error('Network error - unable to connect to server');
+      }
+      if (error.response.status === 307) {
+        throw new Error('Server redirect error - please check API endpoints');
       }
       if (error.response.status === 403) {
         throw new Error('Access denied - please check your permissions');
