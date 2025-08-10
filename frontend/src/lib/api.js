@@ -9,11 +9,10 @@ const getApiBaseURL = () => {
     return ''; // Let Vite proxy handle /api/* routes
   }
   
-  // Production mode - Railway Proxy Mode  
-  // ใช้ empty string เพราะ Railway proxy จะจัดการ /api/* routes
+  // Production mode - ใช้ backend Railway URL
   if (window.location.hostname.includes('railway.app') || 
       process.env.NODE_ENV === 'production') {
-    return ''; // Railway proxy handles /api/* routes directly
+    return 'https://sme-management-system-production.up.railway.app'; // Backend URL
   }
   
   return import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -136,8 +135,8 @@ api.interceptors.response.use(
 export const authAPI = {
   login: async (credentials) => {
     try {
-      // ใช้ /api/login เพื่อให้ตรงกับ backend endpoint
-      const response = await api.post('/api/login', credentials);
+      // ใช้ /auth/login เพื่อให้ตรงกับ backend endpoint
+      const response = await api.post('/auth/login', credentials);
       return response.data;
     } catch (error) {
       throw error;
@@ -146,8 +145,8 @@ export const authAPI = {
 
   getCurrentUser: async () => {
     try {
-      // ใช้ /api/me เพื่อให้ตรงกับ backend endpoint  
-      const response = await api.get('/api/me');
+      // ใช้ /auth/me เพื่อให้ตรงกับ backend endpoint  
+      const response = await api.get('/auth/me');
       return response.data;
     } catch (error) {
       throw error;
