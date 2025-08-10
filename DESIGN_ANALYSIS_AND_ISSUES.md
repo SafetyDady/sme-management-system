@@ -1,4 +1,5 @@
 # 🔍 SME Design Document Analysis & Issues Report
+> STATIC ANALYSIS REFERENCE – For current scope use `docs/CANONICAL_SYSTEM_OVERVIEW.md`.
 *Date: August 9, 2025*
 *Analysis by: AI Assistant*
 *Based on: SME_Management_System_Complete_Design.md*

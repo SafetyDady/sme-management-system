@@ -1,4 +1,5 @@
 # 🚀 SME Management System - Development Progression & Learning Log
+> JOURNAL ONLY – Architecture & scope canonical: `docs/CANONICAL_SYSTEM_OVERVIEW.md`.
 *Start Date: August 9, 2025*
 *Project Status: Phase 1 Complete, Phase 2 Planning*
 

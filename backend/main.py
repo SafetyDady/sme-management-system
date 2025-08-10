@@ -32,7 +32,7 @@ from app.security import (
 )
 
 # Import new routers
-from routers import users, auth
+from routers import users, auth, employees
 from app.logging_config import (
     setup_logging, 
     get_logger, 
@@ -40,6 +40,8 @@ from app.logging_config import (
     log_auth_event,
     log_error
 )
+from sqlalchemy import text
+from dependencies.auth import require_admin_or_superadmin
 
 # Setup logging first
 setup_logging()
@@ -59,6 +61,13 @@ async def lifespan(app: FastAPI):
         
         db = SessionLocal()
         try:
+            # Log current Alembic DB revision (if table exists)
+            try:
+                rev = db.execute(text("SELECT version_num FROM alembic_version")).scalar()
+                logger.info(f"✅ Database Alembic revision detected: {rev}")
+            except Exception as rev_exc:
+                logger.warning(f"⚠️ Could not read alembic_version (might be before migrations): {rev_exc}")
+
             # Check if admin user exists
             admin_user = db.query(User).filter(User.username == "admin").first()
             if not admin_user:
@@ -550,9 +559,19 @@ if os.getenv('ENVIRONMENT', 'development') == 'development':
             }
         }
 
+@app.get("/admin/db-revision")
+async def get_db_revision(db: Session = Depends(get_db), current_user: User = Depends(require_admin_or_superadmin)):
+    """Return current Alembic DB revision (Admin/SuperAdmin)."""
+    try:
+        rev = db.execute(text("SELECT version_num FROM alembic_version")).scalar()
+        return {"revision": rev}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read revision: {e}")
+
 # Include routers
 app.include_router(users.router, prefix="/api")
 app.include_router(auth.router)
+app.include_router(employees.router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn

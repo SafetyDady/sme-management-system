@@ -1,4 +1,5 @@
 # 🚀 DIY SME Management System - Self-Development Plan
+> SUPERSEDED – Live consolidated plan: `docs/CANONICAL_SYSTEM_OVERVIEW.md`.
 *Date: August 9, 2025*
 *Decision: Build it ourselves without external developers*
 
