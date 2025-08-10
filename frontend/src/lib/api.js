@@ -9,10 +9,10 @@ const getApiBaseURL = () => {
     return ''; // Let Vite proxy handle /api/* routes
   }
   
-  // Production mode - ใช้ backend Railway URL
+  // Production mode - ใช้ proxy แทน direct backend call
   if (window.location.hostname.includes('railway.app') || 
       process.env.NODE_ENV === 'production') {
-    return 'https://sme-management-system-production.up.railway.app'; // Backend URL
+    return ''; // Use frontend proxy instead of direct backend URL
   }
   
   return import.meta.env.VITE_API_URL || 'http://localhost:3000';
