@@ -56,7 +56,6 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
-    return config;
   },
   (error) => {
     console.error('🚨 Request interceptor error:', error);
@@ -238,7 +237,7 @@ export const userAPI = {
   getUsers: async () => {
     console.log('🔍 Calling userAPI.getUsers()...');
     try {
-      const response = await api.get('/api/users/');
+      const response = await api.get('/api/users/', { timeout: 10000 });
       console.log('✅ Users API Success:', response.data);
       return response.data;
     } catch (error) {
@@ -246,8 +245,21 @@ export const userAPI = {
         message: error.message,
         status: error.response?.status,
         statusText: error.response?.statusText,
-        data: error.response?.data
+        data: error.response?.data,
+        code: error.code
       });
+      
+      // Better error handling
+      if (error.code === 'ECONNABORTED') {
+        throw new Error('Request timeout - please try again');
+      }
+      if (!error.response) {
+        throw new Error('Network error - unable to connect to server');
+      }
+      if (error.response.status === 403) {
+        throw new Error('Access denied - please check your permissions');
+      }
+      
       throw error;
     }
   },
