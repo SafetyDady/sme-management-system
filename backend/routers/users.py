@@ -63,14 +63,22 @@ async def create_user(
     hashed_password = pwd_context.hash(user_data.password)
     
     # Create new user
-    # Create new user (no employee fields handling)
+    # Support employee profile fields if provided (safe ignore if model lacks due to migration mismatch)
+    extra_fields = {}
+    for f in ["employee_code", "department", "position", "hire_date", "phone", "address"]:
+        if hasattr(user_data, f):
+            val = getattr(user_data, f, None)
+            if val is not None:
+                extra_fields[f] = val
+
     db_user = User(
         username=user_data.username,
         email=user_data.email,
         role=user_data.role,
         hashed_password=hashed_password,
         is_active=True,
-        created_at=datetime.utcnow()
+        created_at=datetime.utcnow(),
+        **extra_fields
     )
     
     db.add(db_user)

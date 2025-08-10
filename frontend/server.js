@@ -20,12 +20,6 @@ app.use(express.static(path.join(__dirname, 'dist')));
 app.use('/api', createProxyMiddleware({
   target: 'https://sme-management-system-production.up.railway.app',
   changeOrigin: true,
-  secure: true,
-  timeout: 30000,
-  proxyTimeout: 30000,
-  headers: {
-    'Connection': 'keep-alive',
-  },
   // Remove pathRewrite since backend uses /api/login directly
   onProxyReq: (proxyReq, req, res) => {
     console.log('✅ Proxying:', req.method, req.url, '->', proxyReq.path);
@@ -40,12 +34,6 @@ app.use('/api', createProxyMiddleware({
 app.use('/auth', createProxyMiddleware({
   target: 'https://sme-management-system-production.up.railway.app',
   changeOrigin: true,
-  secure: true,
-  timeout: 30000,
-  proxyTimeout: 30000,
-  headers: {
-    'Connection': 'keep-alive',
-  },
   onProxyReq: (proxyReq, req, res) => {
     console.log('✅ Auth Proxying:', req.method, req.url, '->', proxyReq.path);
   },

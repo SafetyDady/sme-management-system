@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Date, ForeignKey, Numeric, Text
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Date, ForeignKey, Numeric
 from sqlalchemy.orm import relationship
 from .database import Base
 from datetime import datetime
@@ -11,28 +11,20 @@ Deferred (future phases): compensation fields, notes, leave/daily actual trackin
 class HREmployee(Base):
     __tablename__ = "hr_employees"
     
-    employee_id = Column(String, primary_key=True, index=True)
+    employee_id = Column(Integer, primary_key=True, index=True)
     emp_code = Column(String(20), unique=True, index=True, nullable=False)
-    user_id = Column(String, ForeignKey("users.id"), nullable=True)
-    
-    # Basic employee info
+    user_id = Column(String, ForeignKey("users.id"), nullable=True)  # Optional link to user account
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
-    department = Column(String(50), nullable=True, index=True)
     position = Column(String(100), nullable=True)
-    
-    # Employment and compensation - matching production exactly
-    employment_type = Column(String(20), nullable=True)
-    salary_monthly = Column(Numeric(10, 2), nullable=True)
-    wage_daily = Column(Numeric(8, 2), nullable=True)
-    active_status = Column(Boolean, nullable=True, index=True)
+    department = Column(String(100), nullable=True, index=True)
+    start_date = Column(Date, nullable=True)
+    employment_type = Column(String(30), nullable=True)  # e.g. fulltime, parttime, contract, daily
+    salary_base = Column(Numeric(10, 2), nullable=True)  # Monthly or agreed base depending on employment_type
+    active_status = Column(Boolean, default=True, index=True)
     contact_phone = Column(String(20), nullable=True)
-    contact_address = Column(Text, nullable=True)
-    note = Column(Text, nullable=True)
-    
-    # Audit fields matching production
-    created_at = Column(DateTime, nullable=True)
-    updated_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_by = Column(String, ForeignKey("users.id"), nullable=True)
     updated_by = Column(String, ForeignKey("users.id"), nullable=True)
     

@@ -7,7 +7,7 @@ This file imports all models for the SME Management System
 from .models import User, PasswordResetToken
 
 # Import SME module models
-from .models_hr import HREmployee
+from .models_hr import HREmployee, HRLeaveRequest, HRDailyActual
 from .models_projects import Customer, Project, ProjectTask
 from .models_inventory import InventoryCategory, InventoryItem, InventoryTransaction, InventoryStock
 from .models_financial import (

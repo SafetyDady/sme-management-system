@@ -551,7 +551,7 @@ if os.getenv('ENVIRONMENT', 'development') == 'development':
         }
 
 # Include routers
-app.include_router(users.router, prefix="/api/users")
+app.include_router(users.router, prefix="/api")
 app.include_router(auth.router)
 app.include_router(employees.router, prefix="/api")
 

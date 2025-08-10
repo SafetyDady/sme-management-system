@@ -9,10 +9,11 @@ const getApiBaseURL = () => {
     return ''; // Let Vite proxy handle /api/* routes
   }
   
-  // Production mode - ใช้ proxy แทน direct backend call
+  // Production mode - Railway Proxy Mode  
+  // ใช้ empty string เพราะ Railway proxy จะจัดการ /api/* routes
   if (window.location.hostname.includes('railway.app') || 
       process.env.NODE_ENV === 'production') {
-    return ''; // Use frontend proxy instead of direct backend URL
+    return ''; // Railway proxy handles /api/* routes directly
   }
   
   return import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -55,6 +56,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    return config;
     return config;
   },
   (error) => {
@@ -134,8 +136,8 @@ api.interceptors.response.use(
 export const authAPI = {
   login: async (credentials) => {
     try {
-      // ใช้ /auth/login เพื่อให้ตรงกับ backend endpoint
-      const response = await api.post('/auth/login', credentials);
+      // ใช้ /api/login เพื่อให้ตรงกับ backend endpoint
+      const response = await api.post('/api/login', credentials);
       return response.data;
     } catch (error) {
       throw error;
@@ -144,8 +146,8 @@ export const authAPI = {
 
   getCurrentUser: async () => {
     try {
-      // ใช้ /auth/me เพื่อให้ตรงกับ backend endpoint  
-      const response = await api.get('/auth/me');
+      // ใช้ /api/me เพื่อให้ตรงกับ backend endpoint  
+      const response = await api.get('/api/me');
       return response.data;
     } catch (error) {
       throw error;
@@ -237,7 +239,7 @@ export const userAPI = {
   getUsers: async () => {
     console.log('🔍 Calling userAPI.getUsers()...');
     try {
-      const response = await api.get('/api/users', { timeout: 10000 });
+      const response = await api.get('/api/users/');
       console.log('✅ Users API Success:', response.data);
       return response.data;
     } catch (error) {
@@ -245,24 +247,8 @@ export const userAPI = {
         message: error.message,
         status: error.response?.status,
         statusText: error.response?.statusText,
-        data: error.response?.data,
-        code: error.code
+        data: error.response?.data
       });
-      
-      // Better error handling
-      if (error.code === 'ECONNABORTED') {
-        throw new Error('Request timeout - please try again');
-      }
-      if (!error.response) {
-        throw new Error('Network error - unable to connect to server');
-      }
-      if (error.response.status === 307) {
-        throw new Error('Server redirect error - please check API endpoints');
-      }
-      if (error.response.status === 403) {
-        throw new Error('Access denied - please check your permissions');
-      }
-      
       throw error;
     }
   },
