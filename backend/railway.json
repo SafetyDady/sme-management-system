@@ -10,7 +10,7 @@
     ]
   },
   "deploy": {
-    "startCommand": "bash run.sh",
+    "startCommand": "uvicorn main_sme:app --host 0.0.0.0 --port $PORT",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 30,
     "restartPolicyType": "on_failure",

@@ -1,9 +1,6 @@
 """
-DEPRECATED ENTRYPOINT (legacy): main_sme.py
-This file is retained temporarily for reference. The canonical running application
-now uses main.py together with automated Alembic migrations (run.sh script).
-Future changes should target main.py; main_sme.py may be removed after confirmation
-that Railway deployment points exclusively to run.sh / main:app.
+SME Management System - Enhanced FastAPI Application
+Production-ready application with all SME modules
 """
 from fastapi import FastAPI, HTTPException, Depends, status, Request
 from fastapi.middleware.cors import CORSMiddleware

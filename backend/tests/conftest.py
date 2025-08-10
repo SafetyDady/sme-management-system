@@ -5,6 +5,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.database import Base, get_db
+from app.models import User  # Import models first
+from app.models_hr import HREmployee  # Import HR models to create tables
 from main import app
 
 # Use in-memory SQLite for unit tests (isolated)
@@ -27,13 +29,14 @@ def db_session():
         session.close()
 
 # Override dependency
-@app.dependency_overrides.get(get_db)
 def override_get_db():
     session = TestingSessionLocal()
     try:
         yield session
     finally:
         session.close()
+
+app.dependency_overrides[get_db] = override_get_db
 
 @pytest.fixture()
 def client(db_session):

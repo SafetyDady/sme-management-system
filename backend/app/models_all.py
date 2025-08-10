@@ -6,8 +6,8 @@ This file imports all models for the SME Management System
 # Import existing authentication models
 from .models import User, PasswordResetToken
 
-# Import SME module models (lean phase: only HREmployee retained; leave & daily actual deferred)
-from .models_hr import HREmployee
+# Import SME module models
+from .models_hr import HREmployee, HRLeaveRequest, HRDailyActual
 from .models_projects import Customer, Project, ProjectTask
 from .models_inventory import InventoryCategory, InventoryItem, InventoryTransaction, InventoryStock
 from .models_financial import (
@@ -24,8 +24,10 @@ __all__ = [
     "User",
     "PasswordResetToken",
     
-    # HR models (lean)
+    # HR models
     "HREmployee",
+    "HRLeaveRequest", 
+    "HRDailyActual",
     
     # Project models
     "Customer",

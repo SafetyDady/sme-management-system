@@ -4,6 +4,7 @@ Enhanced Pydantic schemas with comprehensive validation
 from pydantic import BaseModel, EmailStr, validator, Field
 from typing import Optional, Dict, Any
 from datetime import datetime
+from decimal import Decimal
 import re
 
 class UserLogin(BaseModel):
@@ -118,13 +119,6 @@ class User(BaseModel):
     role: str
     is_active: bool
     created_at: datetime
-    # Exposed employee profile (may be null)
-    employee_code: Optional[str] = None
-    department: Optional[str] = None
-    position: Optional[str] = None
-    hire_date: Optional[datetime] = None  # kept simple; frontend can format
-    phone: Optional[str] = None
-    address: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -144,13 +138,6 @@ class UserUpdate(BaseModel):
     password: Optional[str] = Field(None, min_length=6, max_length=128)
     role: Optional[str] = Field(None, pattern="^(user|admin1|admin2|superadmin)$")
     is_active: Optional[bool] = None
-    # Employee fields (all optional)
-    employee_code: Optional[str] = Field(None, max_length=30)
-    department: Optional[str] = Field(None, max_length=100)
-    position: Optional[str] = Field(None, max_length=100)
-    hire_date: Optional[datetime] = None
-    phone: Optional[str] = Field(None, max_length=30)
-    address: Optional[str] = Field(None, max_length=500)
     
     @validator('username')
     def validate_username(cls, v):
@@ -284,17 +271,20 @@ class EmployeePublic(BaseModel):
     class Config:
         from_attributes = True
 
-# HR Employee Schemas (lean phase)
+# HR Employee Schemas (match production)
 class EmployeeCreate(BaseModel):
     emp_code: str = Field(..., min_length=2, max_length=20)
     first_name: str = Field(..., min_length=1, max_length=50)
     last_name: str = Field(..., min_length=1, max_length=50)
     position: Optional[str] = Field(None, max_length=100)
     department: Optional[str] = Field(None, max_length=100)
-    start_date: Optional[datetime] = None
-    employment_type: Optional[str] = Field(None, max_length=30)
-    salary_base: Optional[float] = None
+    employment_type: Optional[str] = Field(None, max_length=20)
+    salary_monthly: Optional[Decimal] = None
+    wage_daily: Optional[Decimal] = None
+    active_status: Optional[bool] = True
     contact_phone: Optional[str] = Field(None, max_length=20)
+    contact_address: Optional[str] = None
+    note: Optional[str] = None
     user_id: Optional[str] = Field(None, description="Link to existing user (optional)")
 
     @validator('emp_code')
@@ -306,24 +296,33 @@ class EmployeeCreate(BaseModel):
 class EmployeeUpdate(BaseModel):
     position: Optional[str] = Field(None, max_length=100)
     department: Optional[str] = Field(None, max_length=100)
-    employment_type: Optional[str] = Field(None, max_length=30)
-    salary_base: Optional[float] = None
-    contact_phone: Optional[str] = Field(None, max_length=20)
+    employment_type: Optional[str] = Field(None, max_length=20)
+    salary_monthly: Optional[Decimal] = None
+    wage_daily: Optional[Decimal] = None
     active_status: Optional[bool] = None
+    contact_phone: Optional[str] = Field(None, max_length=20)
+    contact_address: Optional[str] = None
+    note: Optional[str] = None
 
 class EmployeeRecord(BaseModel):
-    employee_id: int
+    employee_id: str
     emp_code: str
     first_name: str
     last_name: str
     position: Optional[str]
     department: Optional[str]
-    start_date: Optional[datetime]
     employment_type: Optional[str]
-    salary_base: Optional[float]
+    salary_monthly: Optional[Decimal]
+    wage_daily: Optional[Decimal]
+    active_status: Optional[bool]
     contact_phone: Optional[str]
-    active_status: bool
+    contact_address: Optional[str]
+    note: Optional[str]
     user_id: Optional[str]
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+    created_by: Optional[str]
+    updated_by: Optional[str]
 
     class Config:
         from_attributes = True
