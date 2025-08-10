@@ -1,0 +1,172 @@
+# ============================================================================
+# SME Management System - Git Ignore Rules
+# ============================================================================
+
+# ⚠️  DANGEROUS FILES - Never commit these!
+# ============================================================================
+
+# Database connection scripts (contains sensitive info)
+check_db.py
+connect_railway_db.py
+connect_db.py
+db_connect.py
+database_check.py
+
+# Admin creation scripts (security risk)
+create_admin.py
+admin_setup.py
+setup_admin.py
+init_admin.py
+
+# Environment files with secrets
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+
+# ============================================================================
+# Development Files
+# ============================================================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.ENV/
+
+# IDE files
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ============================================================================
+# Frontend Files
+# ============================================================================
+
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Cache
+.cache/
+.parcel-cache/
+
+# ============================================================================
+# Temporary Files
+# ============================================================================
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+
+# ============================================================================
+# Configuration Files (be careful!)
+# ============================================================================
+
+# Railway sensitive configs (keep railway.json but watch changes)
+# railway.json  # Commented out - we need this but be careful!
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.cert
+
+# ============================================================================
+# Testing Files
+# ============================================================================
+
+# Test databases
+test.db
+test.sqlite
+test_*.db
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# ============================================================================
+# NOTES FOR DEVELOPERS
+# ============================================================================
+# 
+# 🚨 CRITICAL SAFETY RULES:
+# 1. Never use 'git add .' blindly
+# 2. Always run 'git status' before commit  
+# 3. Always run 'git diff --cached' before commit
+# 4. Be extra careful with configuration files
+# 5. Never commit database credentials
+# 
+# 📋 SAFE WORKFLOW:
+# git status                    # See what changed
+# git add specific_file.py      # Add only intended files
+# git diff --cached            # Review what will be committed
+# git commit -m "message"      # Commit safely
+# 
+# ============================================================================
