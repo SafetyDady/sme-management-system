@@ -175,8 +175,8 @@ VITE_ENV=production
 - **Auto-deployment**: Git push triggers deployment
 - **Health Monitoring**: `/health` endpoint
 
-### Frontend (Manus Space + Vercel Ready)
-- **Platform**: Manus Space CDN / Vercel (Ready)
+### Frontend (Railway Ready)
+- **Platform**: Railway (Ready)
 - **Framework**: React + Vite  
 - **Build**: Static files optimized for production
 - **CDN**: Global content delivery network

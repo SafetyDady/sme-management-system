@@ -31,7 +31,7 @@ After Option A architecture cleanup and production fixes, the system now has:
 - **Framework**: React + Vite
 - **Styling**: TailwindCSS
 - **Build Tool**: Vite
-- **Deployment**: Planned for Vercel/Netlify
+- **Deployment**: Railway (Full Stack)
 
 ### **Database Schema**
 ```sql

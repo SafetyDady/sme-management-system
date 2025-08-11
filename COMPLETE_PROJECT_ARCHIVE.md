@@ -62,7 +62,7 @@ Styling: TailwindCSS
 State Management: React Context + hooks
 API Client: Axios with interceptors
 Build Tool: Vite (development and production)
-Deployment: Ready for Vercel/Netlify
+Deployment: Railway (Full Stack)
 ```
 
 ### **Development Environment**

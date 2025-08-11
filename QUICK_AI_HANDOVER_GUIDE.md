@@ -142,7 +142,7 @@ git push origin main      # Triggers Railway auto-deploy
 
 ## 📋 **NEXT TASKS (If Needed)**
 
-1. **Frontend Deployment** - Deploy React app to Vercel/Netlify
+1. **Frontend Deployment** - Deploy React app to Railway
 2. **Phase 3 Planning** - Leave management system design
 3. **Testing** - Comprehensive integration testing
 4. **Documentation** - API documentation updates

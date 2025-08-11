@@ -145,8 +145,8 @@ def get_cors_origins() -> list:
         "https://yourdomain.com",
         "https://www.yourdomain.com",
         "https://app.yourdomain.com",
-        # Vercel deployment domains - use wildcard pattern
-        "https://auth-system-frontend-*.vercel.app"
+        # Railway deployment domains
+        "https://sme-management-frontend.railway.app"
     ]
     
     # Development origins
