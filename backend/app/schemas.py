@@ -55,7 +55,7 @@ class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr = Field(..., description="Valid email address")
     password: str = Field(..., min_length=8, max_length=128)
-    role: str = Field(default="user", pattern="^(user|admin1|admin2|superadmin)$")
+    role: str = Field(default="user", pattern="^(user|hr|admin|superadmin)$")
     
     @validator('username')
     def validate_username(cls, v):
@@ -135,7 +135,7 @@ class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50)
     email: Optional[EmailStr] = None
     password: Optional[str] = Field(None, min_length=6, max_length=128)
-    role: Optional[str] = Field(None, pattern="^(user|admin|superadmin)$")
+    role: Optional[str] = Field(None, pattern="^(user|hr|admin|superadmin)$")
     is_active: Optional[bool] = None
     
     @validator('username')

@@ -23,5 +23,7 @@ def require_roles(allowed_roles: List[str]):
 
 # Role shortcuts
 require_admin_or_superadmin = require_roles(["admin", "superadmin"])
+require_hr_admin_or_superadmin = require_roles(["hr", "admin", "superadmin"])
+require_hr_only = require_roles(["hr"])
 require_superadmin = require_roles(["superadmin"])
 
