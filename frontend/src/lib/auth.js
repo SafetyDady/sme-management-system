@@ -51,10 +51,11 @@ export const hasRole = (requiredRole) => {
     console.log('🔄 Normalized role from', userData.role, 'to', userRole);
   }
   
-  // Role hierarchy: superadmin > admin > user
+  // Role hierarchy: superadmin > admin > hr > user
   const roleHierarchy = {
-    'superadmin': 3,
-    'admin': 2,
+    'superadmin': 4,
+    'admin': 3,
+    'hr': 2,
     'user': 1
   };
   
@@ -80,8 +81,13 @@ export const canManageUser = (targetUser) => {
   // Superadmin can manage everyone
   if (currentUser.role === 'superadmin') return true;
   
-  // Admin can only manage users with 'user' role
+  // Admin can manage users with 'user' or 'hr' role
   if (currentUser.role === 'admin') {
+    return ['user', 'hr'].includes(targetUser.role);
+  }
+  
+  // HR can only manage users with 'user' role
+  if (currentUser.role === 'hr') {
     return targetUser.role === 'user';
   }
   
@@ -109,6 +115,9 @@ export const getRedirectPath = (role) => {
     case 'admin':
       console.log('➡️ Redirecting admin to /dashboard');
       return '/dashboard';
+    case 'hr':
+      console.log('➡️ Redirecting HR to /hr/dashboard');
+      return '/hr/dashboard';
     case 'user':
       console.log('➡️ Redirecting user to /profile');
       return '/dashboard'; // Changed to /dashboard for now since /profile doesn't exist

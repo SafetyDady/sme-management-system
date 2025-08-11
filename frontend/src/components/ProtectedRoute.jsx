@@ -45,6 +45,8 @@ const ProtectedRoute = ({ children, requiredRole = null, redirectTo = '/login' }
       const userRole = user?.role;
       if (userRole === 'user') {
         return <Navigate to="/profile" replace />;
+      } else if (userRole === 'hr') {
+        return <Navigate to="/hr/dashboard" replace />;
       } else {
         return <Navigate to="/dashboard" replace />;
       }

@@ -11,6 +11,11 @@ import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import UserManagement from './pages/UserManagement';
 import Profile from './pages/Profile';
+// HR Components
+import HRLayout from './components/hr/HRLayout';
+import HRDashboard from './components/hr/HRDashboard';
+import EmployeeManagement from './components/hr/EmployeeManagement';
+import HRReports from './components/hr/HRReports';
 import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 
@@ -52,6 +57,18 @@ function App() {
                   </Layout>
                 </ProtectedRoute>
               } />
+              
+              {/* HR Routes - HR role and above */}
+              <Route path="/hr" element={
+                <ProtectedRoute requiredRole="hr">
+                  <HRLayout />
+                </ProtectedRoute>
+              }>
+                <Route path="dashboard" element={<HRDashboard />} />
+                <Route path="employees" element={<EmployeeManagement />} />
+                <Route path="reports" element={<HRReports />} />
+                <Route index element={<Navigate to="/hr/dashboard" replace />} />
+              </Route>
               
               <Route path="/village" element={
                 <ProtectedRoute requiredRole="superadmin">
