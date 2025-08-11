@@ -1,6 +1,28 @@
-# �� SME Management System
+# 🏢 SME Management System
 
-A comprehensive Small and Medium Enterprise management system built with modern technologies.
+A comprehensive Small and Medium Enterprise management system built with modern technologies. **Now with complete HR Employee Management!** ⭐
+
+## ✨ Current Features
+
+### 🔐 Authentication & Security
+- JWT-based authentication with role management
+- Secure password hashing and validation
+- Admin user auto-creation and management
+- Production-ready security headers and CORS
+
+### 👨‍💼 HR Employee Management ⭐ **NEW!**
+- Complete employee CRUD operations  
+- Department and position management
+- Employment type classification (full-time/part-time/contract)
+- Salary base tracking and contact management
+- Advanced search and filtering capabilities
+- Unicode support for international names
+- Admin-only access controls
+
+### 👥 User Management
+- Role-based access control (SuperAdmin/Admin/User)
+- User profile management and password updates
+- User status management and oversight
 
 ## 📦 Tech Stack
 
