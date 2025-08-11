@@ -3,6 +3,7 @@ HR Management Router - HR role specific endpoints
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import func, case
 from typing import List, Optional
 from datetime import datetime, timedelta
 from app.database import get_db
@@ -31,7 +32,7 @@ async def get_hr_dashboard_summary(
         # Department breakdown
         dept_stats = db.query(
             HREmployee.department, 
-            db.func.count(HREmployee.employee_id).label('count')
+            func.count(HREmployee.employee_id).label('count')
         ).filter(
             HREmployee.active_status == True
         ).group_by(HREmployee.department).all()
@@ -39,7 +40,7 @@ async def get_hr_dashboard_summary(
         # Employment type breakdown
         emp_type_stats = db.query(
             HREmployee.employment_type,
-            db.func.count(HREmployee.employee_id).label('count')
+            func.count(HREmployee.employee_id).label('count')
         ).filter(
             HREmployee.active_status == True
         ).group_by(HREmployee.employment_type).all()
@@ -85,8 +86,8 @@ async def get_employee_quick_stats(
         # Count by department
         departments = db.query(
             HREmployee.department,
-            db.func.count(HREmployee.employee_id).label('total'),
-            db.func.sum(db.case((HREmployee.active_status == True, 1), else_=0)).label('active')
+            func.count(HREmployee.employee_id).label('total'),
+            func.sum(case((HREmployee.active_status == True, 1), else_=0)).label('active')
         ).group_by(HREmployee.department).all()
         
         # Latest employees
@@ -220,15 +221,15 @@ async def get_employee_summary_report(
         # Department statistics
         dept_stats = db.query(
             HREmployee.department,
-            db.func.count(HREmployee.employee_id).label('total'),
-            db.func.sum(db.case((HREmployee.active_status == True, 1), else_=0)).label('active'),
-            db.func.avg(HREmployee.salary_base).label('avg_salary')
+            func.count(HREmployee.employee_id).label('total'),
+            func.sum(case((HREmployee.active_status == True, 1), else_=0)).label('active'),
+            func.avg(HREmployee.salary_base).label('avg_salary')
         ).group_by(HREmployee.department).all()
         
         # Employment type statistics
         emp_type_stats = db.query(
             HREmployee.employment_type,
-            db.func.count(HREmployee.employee_id).label('count')
+            func.count(HREmployee.employee_id).label('count')
         ).filter(HREmployee.active_status == True).group_by(HREmployee.employment_type).all()
         
         return {

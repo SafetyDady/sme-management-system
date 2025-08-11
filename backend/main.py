@@ -32,7 +32,7 @@ from app.security import (
 )
 
 # Import new routers
-from routers import users, auth, employees
+from routers import users, auth, employees, hr_management
 from app.logging_config import (
     setup_logging, 
     get_logger, 
@@ -77,6 +77,25 @@ async def lifespan(app: FastAPI):
                 logger.info("✅ Created default admin user: admin / admin123")
             else:
                 logger.info("✅ Admin user already exists")
+                
+            # Check if HR user exists
+            hr_user = db.query(User).filter(User.username == "hr_manager").first()
+            if not hr_user:
+                # Create default HR user
+                hashed_password = get_password_hash("hrpass123")
+                hr_user = User(
+                    username="hr_manager",
+                    email="hr@sme.local",
+                    hashed_password=hashed_password,
+                    role="hr",
+                    is_active=True,
+                    created_at=datetime.utcnow()
+                )
+                db.add(hr_user)
+                db.commit()
+                logger.info("✅ Created default HR user: hr_manager / hrpass123")
+            else:
+                logger.info("✅ HR user already exists")
         finally:
             db.close()
     except Exception as e:
@@ -642,6 +661,7 @@ if os.getenv('ENVIRONMENT', 'development') == 'development':
 app.include_router(users.router, prefix="/api/users")
 app.include_router(auth.router)
 app.include_router(employees.router, prefix="/api")
+app.include_router(hr_management.router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn
