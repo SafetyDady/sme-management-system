@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.orm import Session
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import List
 import os
 import uuid
@@ -535,6 +535,93 @@ async def check_users(db: Session = Depends(get_db)):
         "message": "Successfully logged out",
         "username": current_user.username
     }
+
+# Additional admin check endpoint
+@app.get("/admin/check-users")
+async def check_admin_users():
+    """Check if admin users exist (for debugging)"""
+    try:
+        from app.database import SessionLocal
+        db = SessionLocal()
+        try:
+            admin_count = db.query(User).filter(User.role.in_(["admin", "superadmin"])).count()
+            total_users = db.query(User).count()
+            admin_user = db.query(User).filter(User.username == "admin").first()
+            return {
+                "admin_users_count": admin_count,
+                "total_users": total_users,
+                "admin_user_exists": admin_user is not None,
+                "admin_user_active": admin_user.is_active if admin_user else None,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        finally:
+            db.close()
+    except Exception as e:
+        return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+
+@app.post("/admin/init-admin")
+async def init_admin_user():
+    """Manually initialize admin user (for production fix)"""
+    try:
+        from app.database import SessionLocal
+        from app.auth import get_password_hash
+        
+        db = SessionLocal()
+        try:
+            # Check if admin user exists
+            admin_user = db.query(User).filter(User.username == "admin").first()
+            if admin_user:
+                return {"message": "Admin user already exists", "username": "admin"}
+            
+            # Create default admin user
+            hashed_password = get_password_hash("admin123")
+            admin_user = User(
+                username="admin",
+                email="admin@sme.local",
+                hashed_password=hashed_password,
+                role="superadmin",
+                is_active=True,
+                created_at=datetime.utcnow()
+            )
+            db.add(admin_user)
+            db.commit()
+            return {"message": "✅ Admin user created successfully", "username": "admin", "password": "admin123"}
+        finally:
+            db.close()
+    except Exception as e:
+        return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+
+@app.post("/admin/reset-admin-password")
+async def reset_admin_password():
+    """Reset admin password to admin123 (for production fix)"""
+    try:
+        from app.database import SessionLocal
+        from app.auth import get_password_hash
+        
+        db = SessionLocal()
+        try:
+            # Find admin user
+            admin_user = db.query(User).filter(User.username == "admin").first()
+            if not admin_user:
+                return {"error": "Admin user not found"}
+            
+            # Update password to admin123
+            new_hashed_password = get_password_hash("admin123")
+            admin_user.hashed_password = new_hashed_password
+            db.commit()
+            
+            return {
+                "message": "✅ Admin password reset successfully", 
+                "username": "admin",
+                "new_password": "admin123",
+                "email": admin_user.email,
+                "old_hash": "$2b$12$zk34brbiP.iZOiycVrT3h.2SI9mUV4mc5SdyHJ6muGri0OBwy.cWS"[:20] + "...",
+                "new_hash": new_hashed_password[:20] + "..."
+            }
+        finally:
+            db.close()
+    except Exception as e:
+        return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
 
 # Development/debugging endpoints (only in development)
 if os.getenv('ENVIRONMENT', 'development') == 'development':
