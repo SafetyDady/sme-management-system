@@ -4,7 +4,7 @@ echo "🔍 Authentication Debug Analysis"
 echo "================================"
 echo
 
-RAILWAY_URL="https://web-production-5b6ab.up.railway.app"
+RAILWAY_URL="https://sme-management-system-production.up.railway.app"
 
 echo "📋 Database Status Confirmed:"
 echo "- ✅ superadmin exists in DB"

@@ -4,8 +4,8 @@
 
 **Project Name**: Authentication System with JWT  
 **Backend Status**: ✅ Production Ready (Phase 3 Security Patch)  
-**Production URL**: https://web-production-5b6ab.up.railway.app  
-**API Documentation**: https://web-production-5b6ab.up.railway.app/docs  
+**Production URL**: https://sme-management-system-production.up.railway.app  
+**API Documentation**: https://sme-management-system-production.up.railway.app/docs  
 
 ---
 
@@ -15,7 +15,7 @@
 
 #### **1. POST /auth/login**
 **Purpose**: User authentication and JWT token generation  
-**URL**: `https://web-production-5b6ab.up.railway.app/auth/login`
+**URL**: `https://sme-management-system-production.up.railway.app/auth/login`
 
 **Request:**
 ```json
@@ -43,7 +43,7 @@
 
 #### **2. GET /auth/me**
 **Purpose**: Get current user profile (Protected)  
-**URL**: `https://web-production-5b6ab.up.railway.app/auth/me`  
+**URL**: `https://sme-management-system-production.up.railway.app/auth/me`  
 **Headers**: `Authorization: Bearer <jwt_token>`
 
 **Response (200):**
@@ -62,7 +62,7 @@
 
 #### **3. GET /health**
 **Purpose**: System health check  
-**URL**: `https://web-production-5b6ab.up.railway.app/health`
+**URL**: `https://sme-management-system-production.up.railway.app/health`
 
 **Response (200):**
 ```json
@@ -76,7 +76,7 @@
 
 #### **4. GET /**
 **Purpose**: Root endpoint with system info  
-**URL**: `https://web-production-5b6ab.up.railway.app/`
+**URL**: `https://sme-management-system-production.up.railway.app/`
 
 **Response (200):**
 ```json
@@ -90,7 +90,7 @@
 
 #### **5. GET /dashboard**
 **Purpose**: Protected dashboard endpoint  
-**URL**: `https://web-production-5b6ab.up.railway.app/dashboard`  
+**URL**: `https://sme-management-system-production.up.railway.app/dashboard`  
 **Headers**: `Authorization: Bearer <jwt_token>`
 
 **Response (200):**
@@ -207,7 +207,7 @@
 ### **API Integration Pattern:**
 ```javascript
 // Example API service
-const API_BASE_URL = 'https://web-production-5b6ab.up.railway.app';
+const API_BASE_URL = 'https://sme-management-system-production.up.railway.app';
 
 const apiService = {
   login: async (username, password) => {
@@ -237,8 +237,8 @@ const apiService = {
 ## 🧪 **Testing & Development**
 
 ### **API Testing:**
-- **Swagger UI**: https://web-production-5b6ab.up.railway.app/docs
-- **Health Check**: https://web-production-5b6ab.up.railway.app/health
+- **Swagger UI**: https://sme-management-system-production.up.railway.app/docs
+- **Health Check**: https://sme-management-system-production.up.railway.app/health
 - **Test Credentials**: Use provided test accounts
 
 ### **Development Environment:**
@@ -286,9 +286,9 @@ const apiService = {
 
 ## 📞 **Support & Resources**
 
-**Backend API**: https://web-production-5b6ab.up.railway.app  
-**API Documentation**: https://web-production-5b6ab.up.railway.app/docs  
-**Health Check**: https://web-production-5b6ab.up.railway.app/health  
+**Backend API**: https://sme-management-system-production.up.railway.app  
+**API Documentation**: https://sme-management-system-production.up.railway.app/docs  
+**Health Check**: https://sme-management-system-production.up.railway.app/health  
 
 **Technical Specifications**: Complete and production-ready  
 **Security Level**: Enterprise-grade with comprehensive protection  

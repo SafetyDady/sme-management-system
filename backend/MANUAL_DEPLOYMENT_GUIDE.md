@@ -105,7 +105,7 @@ git push origin master
 ### **Step 4: Monitor Railway Deployment**
 1. **Go to Railway Dashboard**: https://railway.app/dashboard
 2. **Select Project**: auth-System-backend
-3. **Click on Web Service**: web-production-5b6ab.up.railway.app
+3. **Click on Web Service**: sme-management-system-production.up.railway.app
 4. **Monitor Deployment**:
    - Watch for new deployment trigger
    - Check build logs for errors
@@ -127,7 +127,7 @@ git push origin master
 ### **Step 5: Test Enhanced Production**
 ```bash
 # Test enhanced health check
-curl https://web-production-5b6ab.up.railway.app/health
+curl https://sme-management-system-production.up.railway.app/health
 
 # Expected enhanced response:
 {
@@ -143,7 +143,7 @@ curl https://web-production-5b6ab.up.railway.app/health
 ### **Step 6: Verify Security Headers**
 ```bash
 # Check security headers
-curl -I https://web-production-5b6ab.up.railway.app/
+curl -I https://sme-management-system-production.up.railway.app/
 
 # Expected headers:
 X-Content-Type-Options: nosniff
@@ -157,7 +157,7 @@ X-Request-ID: [UUID]
 ```bash
 # Test authentication rate limiting (should get 429 after 5 requests)
 for i in {1..7}; do
-  curl -X POST https://web-production-5b6ab.up.railway.app/auth/login \
+  curl -X POST https://sme-management-system-production.up.railway.app/auth/login \
     -H "Content-Type: application/json" \
     -d '{"username":"test","password":"test"}' \
     -w "Request $i: %{http_code}\n"
@@ -220,12 +220,12 @@ git push origin master
 ### **Monitoring Commands:**
 ```bash
 # Test all critical endpoints
-curl https://web-production-5b6ab.up.railway.app/health
-curl https://web-production-5b6ab.up.railway.app/
-curl https://web-production-5b6ab.up.railway.app/docs
+curl https://sme-management-system-production.up.railway.app/health
+curl https://sme-management-system-production.up.railway.app/
+curl https://sme-management-system-production.up.railway.app/docs
 
 # Test authentication flow
-curl -X POST https://web-production-5b6ab.up.railway.app/auth/login \
+curl -X POST https://sme-management-system-production.up.railway.app/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"superadmin","password":"superadmin123"}'
 ```

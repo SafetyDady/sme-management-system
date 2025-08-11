@@ -19,7 +19,7 @@
 ### **3. Express Server** ✅
 - **Location**: `/frontend/server.js`
 - **Status**: Ready (existing and working)
-- **Backend**: Proxies to `https://web-production-5b6ab.up.railway.app`
+- **Backend**: Proxies to `https://sme-management-system-production.up.railway.app`
 
 ### **4. Package.json** ✅
 - **Status**: Ready with proper scripts
@@ -38,7 +38,7 @@ NODE_ENV=production
 PORT=3000
 
 # Optional API URL (for development reference)
-VITE_BACKEND_URL=https://web-production-5b6ab.up.railway.app
+VITE_BACKEND_URL=https://sme-management-system-production.up.railway.app
 ```
 
 ### **Auto-provided by Railway**:
@@ -117,10 +117,10 @@ railway up
 
 ### **Current Backend** ✅
 ```
-API Base: https://web-production-5b6ab.up.railway.app
-Health: https://web-production-5b6ab.up.railway.app/health
-Login: https://web-production-5b6ab.up.railway.app/api/login
-Users: https://web-production-5b6ab.up.railway.app/api/users
+API Base: https://sme-management-system-production.up.railway.app
+Health: https://sme-management-system-production.up.railway.app/health
+Login: https://sme-management-system-production.up.railway.app/api/login
+Users: https://sme-management-system-production.up.railway.app/api/users
 ```
 
 ### **New Frontend** (After deployment)

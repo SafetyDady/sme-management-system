@@ -29,7 +29,7 @@
 - **Phase 3**: Leave Management (Future Planning)
 
 ### **Production URLs**
-- **Backend API**: https://web-production-5b6ab.up.railway.app
+- **Backend API**: https://sme-management-system-production.up.railway.app
 - **Database**: PostgreSQL on Railway
 - **Frontend**: Ready for deployment (currently localhost:3001)
 
@@ -141,7 +141,7 @@ Hot Reload: Both backend and frontend
 
 ### **Production URLs & Access**
 ```yaml
-Backend API: https://web-production-5b6ab.up.railway.app
+Backend API: https://sme-management-system-production.up.railway.app
 Admin Panel: Admin login required
 API Documentation: /docs (Swagger UI)
 Health Check: /health
@@ -583,7 +583,7 @@ Result: ✅ Production stable, no schema conflicts
 ```bash
 # Problem: 405 Method Not Allowed
 # Check: API endpoint alignment
-curl -X POST https://web-production-5b6ab.up.railway.app/auth/login \
+curl -X POST https://sme-management-system-production.up.railway.app/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
 
@@ -595,7 +595,7 @@ curl -X POST https://web-production-5b6ab.up.railway.app/auth/login \
 ```bash
 # Problem: Database connection fails
 # Check: Health endpoint
-curl https://web-production-5b6ab.up.railway.app/health
+curl https://sme-management-system-production.up.railway.app/health
 
 # Expected: {"status": "healthy"}
 # If error: Check Railway database status
@@ -605,12 +605,12 @@ curl https://web-production-5b6ab.up.railway.app/health
 ```bash
 # Problem: Admin password doesn't work
 # Solution: Reset admin password
-curl -X POST https://web-production-5b6ab.up.railway.app/admin/reset-admin-password \
+curl -X POST https://sme-management-system-production.up.railway.app/admin/reset-admin-password \
   -H "Content-Type: application/json" \
   -d '{"new_password":"admin123"}'
 
 # Verify: Check user accounts
-curl https://web-production-5b6ab.up.railway.app/admin/check-users
+curl https://sme-management-system-production.up.railway.app/admin/check-users
 ```
 
 #### **Schema Issues**
@@ -849,7 +849,7 @@ Next Priority: Phase 3 planning or frontend deployment
 ```yaml
 Repository: SafetyDady/sme-management-system
 Primary Branch: main
-Production URL: https://web-production-5b6ab.up.railway.app
+Production URL: https://sme-management-system-production.up.railway.app
 Admin Access: admin/admin123
 Documentation: This file + MASTER_PROJECT_DOCUMENTATION.md
 ```

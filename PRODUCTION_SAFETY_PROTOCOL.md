@@ -10,7 +10,7 @@
 ### **🚨 PRODUCTION STATUS**
 ```yaml
 Environment: LIVE PRODUCTION
-Backend: https://web-production-5b6ab.up.railway.app
+Backend: https://sme-management-system-production.up.railway.app
 Database: PostgreSQL on Railway (LIVE DATA)
 Users: Real users with real data
 Deployment: Auto-deploy from main branch
@@ -95,7 +95,7 @@ git push origin main  # Auto-deploys to production
 ### **Live Services**
 ```yaml
 Backend API:
-  URL: https://web-production-5b6ab.up.railway.app
+  URL: https://sme-management-system-production.up.railway.app
   Status: ✅ Operational
   Features: Auth, User Management, HR Employee CRUD
   
@@ -222,10 +222,10 @@ Admin Account:
 ### **Manual Checks** (Daily)
 ```bash
 # Health check
-curl https://web-production-5b6ab.up.railway.app/health
+curl https://sme-management-system-production.up.railway.app/health
 
 # Admin login test  
-curl -X POST https://web-production-5b6ab.up.railway.app/auth/login \
+curl -X POST https://sme-management-system-production.up.railway.app/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
 

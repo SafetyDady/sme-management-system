@@ -12,7 +12,7 @@ echo "VITE_API_URL: ${VITE_API_URL:-'not set'}"
 echo
 
 # Test Railway URL directly
-RAILWAY_URL="https://web-production-5b6ab.up.railway.app"
+RAILWAY_URL="https://sme-management-system-production.up.railway.app"
 echo "🚀 Testing Railway Backend: $RAILWAY_URL"
 echo "----------------------------------------"
 
@@ -140,7 +140,7 @@ echo "2. Check browser Network tab for API requests"
 echo "3. Look for Railway URL in requests"
 echo
 echo "Expected Railway indicators:"
-echo "- Base URL contains: web-production-5b6ab.up.railway.app"
+echo "- Base URL contains: sme-management-system-production.up.railway.app"
 echo "- X-Request-ID header present"
 echo "- Security headers (CSP, X-Frame-Options, etc.)"
 echo "- Response time typically 200-800ms"

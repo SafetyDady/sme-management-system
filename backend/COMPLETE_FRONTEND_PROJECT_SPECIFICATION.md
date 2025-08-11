@@ -3,7 +3,7 @@
 ## 📋 **Project Overview**
 
 **Project**: Frontend ระบบ Auth & User Management สำหรับ Manus  
-**Backend**: ✅ Production Ready - https://web-production-5b6ab.up.railway.app  
+**Backend**: ✅ Production Ready - https://sme-management-system-production.up.railway.app  
 **Framework**: React (SPA - Single Page Application)  
 **Authentication**: JWT-based with Role-based Access Control  
 
@@ -12,8 +12,8 @@
 ## 🔗 **Backend Integration**
 
 ### **Production API:**
-- **Base URL**: https://web-production-5b6ab.up.railway.app
-- **API Documentation**: https://web-production-5b6ab.up.railway.app/docs
+- **Base URL**: https://sme-management-system-production.up.railway.app
+- **API Documentation**: https://sme-management-system-production.up.railway.app/docs
 - **Status**: ✅ Production Ready with Security Grade A
 
 ### **Available Test Accounts:**
@@ -335,8 +335,8 @@ src/
 
 ## 📞 **Support & Resources**
 
-**Backend API**: https://web-production-5b6ab.up.railway.app  
-**API Documentation**: https://web-production-5b6ab.up.railway.app/docs  
+**Backend API**: https://sme-management-system-production.up.railway.app  
+**API Documentation**: https://sme-management-system-production.up.railway.app/docs  
 **Test Accounts**: superadmin/superadmin123, admin1/admin123, admin2/admin123  
 
 **Status**: ✅ Backend ready, Frontend specifications complete  

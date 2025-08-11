@@ -31,7 +31,7 @@ npx vercel --prod
 
 ### Environment Variables
 Set in Vercel Dashboard:
-- `VITE_API_URL`: `https://web-production-5b6ab.up.railway.app`
+- `VITE_API_URL`: `https://sme-management-system-production.up.railway.app`
 - `VITE_ENV`: `production` 
 - `NODE_VERSION`: `20`
 
@@ -71,8 +71,8 @@ npm run preview
 ## 🌐 Live URLs
 
 - **Frontend**: `https://your-app.vercel.app`
-- **Backend**: `https://web-production-5b6ab.up.railway.app`
-- **API Docs**: `https://web-production-5b6ab.up.railway.app/docs`
+- **Backend**: `https://sme-management-system-production.up.railway.app`
+- **API Docs**: `https://sme-management-system-production.up.railway.app/docs`
 
 ## 🐛 Common Issues & Solutions
 

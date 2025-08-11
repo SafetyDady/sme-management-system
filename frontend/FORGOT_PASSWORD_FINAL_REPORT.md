@@ -8,7 +8,7 @@ Successfully implemented complete Forgot Password functionality for the Authenti
 
 ## 🚀 Backend Implementation (Railway Production)
 
-- **URL**: https://web-production-5b6ab.up.railway.app
+- **URL**: https://sme-management-system-production.up.railway.app
 - **Status**: ✅ Deployed and Running
 
 ### Database Schema
@@ -98,8 +98,8 @@ Response: JWT token received successfully
 
 ### Live System
 - **Frontend**: https://sjlidowh.manus.space
-- **Backend**: https://web-production-5b6ab.up.railway.app
-- **API Documentation**: https://web-production-5b6ab.up.railway.app/docs
+- **Backend**: https://sme-management-system-production.up.railway.app
+- **API Documentation**: https://sme-management-system-production.up.railway.app/docs
 
 ### Available Endpoints
 ```
@@ -136,7 +136,7 @@ RESET_TOKEN_EXPIRY_MINUTES=30
 
 ### Environment Variables (Frontend)
 ```
-VITE_API_URL=https://web-production-5b6ab.up.railway.app
+VITE_API_URL=https://sme-management-system-production.up.railway.app
 VITE_ENV=production
 ```
 

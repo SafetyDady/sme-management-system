@@ -7,8 +7,8 @@ React frontend application สำหรับระบบ Authentication ที�
 - ✅ **Production Ready**: Railway deployed with security enhancements
 - ✅ **Security Score**: 9.5/10 (Enhanced from 2/10)
 - ✅ **OWASP Compliance**: 95%
-- 🔗 **Production URL**: https://web-production-5b6ab.up.railway.app
-- 📚 **API Docs**: https://web-production-5b6ab.up.railway.app/docs
+- 🔗 **Production URL**: https://sme-management-system-production.up.railway.app
+- 📚 **API Docs**: https://sme-management-system-production.up.railway.app/docs
 
 ## การตั้งค่า Backend Connection
 
@@ -31,7 +31,7 @@ VITE_ENV=development
 
 แก้ไขไฟล์ `.env`:
 ```env
-VITE_API_URL=https://web-production-5b6ab.up.railway.app
+VITE_API_URL=https://sme-management-system-production.up.railway.app
 VITE_ENV=development
 ```
 
@@ -197,7 +197,7 @@ Frontend จะจัดการ rate limiting responses:
 ### Quick Connection Test
 ```bash
 # Test Railway backend connection
-curl -I https://web-production-5b6ab.up.railway.app/health
+curl -I https://sme-management-system-production.up.railway.app/health
 
 # Expected headers:
 # X-Request-ID: uuid4
@@ -230,7 +230,7 @@ curl -I https://web-production-5b6ab.up.railway.app/health
 3. Refresh หน้าเว็บ
 4. ดู API requests ควรไปที่:
    ```
-   https://web-production-5b6ab.up.railway.app/health
+   https://sme-management-system-production.up.railway.app/health
    ```
 5. ตรวจสอบ Response Headers:
    - `X-Request-ID`: UUID4 format
@@ -250,7 +250,7 @@ curl -I https://web-production-5b6ab.up.railway.app/health
 ### วิธีที่ 2: Network Tab
 1. กด F12 → Network tab
 2. Refresh หน้าเว็บ
-3. ดู API requests ทั้งหมดต้องไปที่ `web-production-5b6ab.up.railway.app`
+3. ดู API requests ทั้งหมดต้องไปที่ `sme-management-system-production.up.railway.app`
 
 ### วิธีที่ 3: Terminal Verification
 ```bash
@@ -261,19 +261,19 @@ cat .env
 ./verify-railway-connection.sh
 
 # ตรวจสอบ health endpoint
-curl -s https://web-production-5b6ab.up.railway.app/health | jq .
+curl -s https://sme-management-system-production.up.railway.app/health | jq .
 ```
 
 ### วิธีที่ 4: Console Logs
 1. เปิด Developer Console
 2. ดู console.log messages:
    ```
-   API Base URL: https://web-production-5b6ab.up.railway.app
+   API Base URL: https://sme-management-system-production.up.railway.app
    Environment: development
    ```
 
 ### หลักฐานที่พิสูจน์การเชื่อมต่อ Railway:
-✅ **URL Verification**: Base URL contains `web-production-5b6ab.up.railway.app`  
+✅ **URL Verification**: Base URL contains `sme-management-system-production.up.railway.app`  
 ✅ **Request ID**: Headers contain `X-Request-ID` with UUID4 format  
 ✅ **Security Headers**: Phase 3 security headers present  
 ✅ **Response Format**: Health check returns Phase 3 JSON format  

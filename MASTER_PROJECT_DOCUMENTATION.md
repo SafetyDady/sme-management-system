@@ -8,7 +8,7 @@
 ## 🎯 **CRITICAL INFORMATION FOR NEW AI SESSIONS**
 
 ### **CURRENT PRODUCTION STATUS**: ✅ FULLY OPERATIONAL
-- **Backend**: https://web-production-5b6ab.up.railway.app *(Railway Auto-Deploy)*
+- **Backend**: https://sme-management-system-production.up.railway.app *(Railway Auto-Deploy)*
 - **Database**: PostgreSQL on Railway *(Production Ready)*
 - **Authentication**: JWT-based, Role-based Access (superadmin/admin/user)
 - **HR Module**: Complete CRUD operations for employee management
@@ -182,7 +182,7 @@ Backend: http://localhost:8000
 Frontend: http://localhost:3001
 
 # Production  
-Backend: https://web-production-5b6ab.up.railway.app
+Backend: https://sme-management-system-production.up.railway.app
 Frontend: TBD (ready for deployment)
 ```
 
@@ -216,7 +216,7 @@ Frontend: TBD (ready for deployment)
 ### **1. Production Check**
 ```bash
 # Test production login
-curl -X POST https://web-production-5b6ab.up.railway.app/auth/login \
+curl -X POST https://sme-management-system-production.up.railway.app/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
 

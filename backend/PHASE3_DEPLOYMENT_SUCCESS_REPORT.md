@@ -4,7 +4,7 @@
 
 **Deployment Time**: 2 minutes ago via GitHub  
 **Status**: ACTIVE - Phase 3 Security Patch deployed successfully  
-**URL**: https://web-production-5b6ab.up.railway.app  
+**URL**: https://sme-management-system-production.up.railway.app  
 
 ---
 
@@ -140,6 +140,6 @@ Note: May need IP-based rate limiting configuration
 
 The authentication system is now production-ready with enterprise-grade security features. All critical vulnerabilities have been addressed, and the system demonstrates excellent security posture.
 
-**Railway Production URL**: https://web-production-5b6ab.up.railway.app  
+**Railway Production URL**: https://sme-management-system-production.up.railway.app  
 **Status**: ACTIVE and SECURE ✅
 

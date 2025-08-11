@@ -7,13 +7,13 @@
 
 ### **Production Health Check**
 ```bash
-curl https://web-production-5b6ab.up.railway.app/health
+curl https://sme-management-system-production.up.railway.app/health
 # Expected: {"status": "healthy"}
 ```
 
 ### **Admin Login Test**
 ```bash
-curl -X POST https://web-production-5b6ab.up.railway.app/auth/login \
+curl -X POST https://sme-management-system-production.up.railway.app/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
 # Expected: {"access_token":"...", "user":{...}}

@@ -1,7 +1,7 @@
 # 🧪 Production System Testing Guide
 *Date: August 9, 2025*
 *Frontend URL: https://sme-management-frontend-production.up.railway.app*
-*Backend URL: https://web-production-5b6ab.up.railway.app*
+*Backend URL: https://sme-management-system-production.up.railway.app*
 
 ---
 
@@ -9,7 +9,7 @@
 
 ### **Complete Production Stack:**
 - **Frontend**: `https://sme-management-frontend-production.up.railway.app`
-- **Backend**: `https://web-production-5b6ab.up.railway.app`
+- **Backend**: `https://sme-management-system-production.up.railway.app`
 - **Database**: PostgreSQL on Railway (connected to backend)
 
 ---
@@ -151,7 +151,7 @@ Users → Frontend (Railway) → Backend (Railway) → Database (Railway)
 
 ### **URLs to Bookmark:**
 - **App**: https://sme-management-frontend-production.up.railway.app
-- **API**: https://web-production-5b6ab.up.railway.app
+- **API**: https://sme-management-system-production.up.railway.app
 
 ### **Ready for:**
 - ✅ Production usage

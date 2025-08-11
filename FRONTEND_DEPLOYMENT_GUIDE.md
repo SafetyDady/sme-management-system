@@ -3,7 +3,7 @@
 ## 📋 Deployment Overview
 **Frontend Framework**: React + Vite  
 **Target Platform**: Vercel (Recommended)  
-**Backend API**: https://web-production-5b6ab.up.railway.app  
+**Backend API**: https://sme-management-system-production.up.railway.app  
 **Production Build**: ✅ Ready
 
 ---
@@ -28,7 +28,7 @@ Node.js Version: 18.x
 ### **Step 3: Environment Variables**
 Add these in Vercel dashboard:
 ```env
-VITE_API_URL=https://web-production-5b6ab.up.railway.app
+VITE_API_URL=https://sme-management-system-production.up.railway.app
 VITE_ENV=production
 ```
 
@@ -49,7 +49,7 @@ Create `netlify.toml` (already exists):
   publish = "dist"
 
 [build.environment]
-  VITE_API_URL = "https://web-production-5b6ab.up.railway.app"
+  VITE_API_URL = "https://sme-management-system-production.up.railway.app"
   VITE_ENV = "production"
 
 [[redirects]]
@@ -97,7 +97,7 @@ origins = [
 ## 🌐 Expected Production URLs
 
 ```yaml
-Backend API: https://web-production-5b6ab.up.railway.app
+Backend API: https://sme-management-system-production.up.railway.app
 Frontend (Vercel): https://sme-management-frontend.vercel.app
 Frontend (Netlify): https://sme-management-frontend.netlify.app
 ```

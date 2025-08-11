@@ -36,7 +36,7 @@
 ```
 🔍 Fetching dashboard data from backend...
 🌐 Making API call to /dashboard...
-API Base URL: https://web-production-5b6ab.up.railway.app
+API Base URL: https://sme-management-system-production.up.railway.app
 ✅ Dashboard API response: {message: "Welcome superadmin", role: "superadmin", ...}
 📊 Dashboard data received: {message: "Welcome superadmin", role: "superadmin", ...}
 ```
