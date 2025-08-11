@@ -411,8 +411,9 @@ async def health_check(request: Request):
     # Add database health check
     try:
         from app.database import engine
+        from sqlalchemy import text
         with engine.connect() as conn:
-            conn.execute("SELECT 1")
+            conn.execute(text("SELECT 1"))
         health_status["database"] = "connected"
     except Exception as e:
         logger.error("Database health check failed", error=str(e))
@@ -551,7 +552,7 @@ if os.getenv('ENVIRONMENT', 'development') == 'development':
         }
 
 # Include routers
-app.include_router(users.router, prefix="/api")
+app.include_router(users.router, prefix="/api/users")
 app.include_router(auth.router)
 app.include_router(employees.router, prefix="/api")
 
