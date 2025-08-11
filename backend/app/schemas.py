@@ -118,13 +118,6 @@ class User(BaseModel):
     role: str
     is_active: bool
     created_at: datetime
-    # Exposed employee profile (may be null)
-    employee_code: Optional[str] = None
-    department: Optional[str] = None
-    position: Optional[str] = None
-    hire_date: Optional[datetime] = None  # kept simple; frontend can format
-    phone: Optional[str] = None
-    address: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -142,15 +135,8 @@ class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50)
     email: Optional[EmailStr] = None
     password: Optional[str] = Field(None, min_length=6, max_length=128)
-    role: Optional[str] = Field(None, pattern="^(user|admin1|admin2|superadmin)$")
+    role: Optional[str] = Field(None, pattern="^(user|admin|superadmin)$")
     is_active: Optional[bool] = None
-    # Employee fields (all optional)
-    employee_code: Optional[str] = Field(None, max_length=30)
-    department: Optional[str] = Field(None, max_length=100)
-    position: Optional[str] = Field(None, max_length=100)
-    hire_date: Optional[datetime] = None
-    phone: Optional[str] = Field(None, max_length=30)
-    address: Optional[str] = Field(None, max_length=500)
     
     @validator('username')
     def validate_username(cls, v):

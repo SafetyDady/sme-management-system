@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, Date
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from .database import Base
 from datetime import datetime
@@ -11,17 +11,10 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
-    role = Column(String, default="user", nullable=False)  # superadmin, admin1, admin2, user
+    role = Column(String, default="user", nullable=False)  # superadmin, admin, user
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     last_login = Column(DateTime, nullable=True)
-    # Employee profile extension (nullable, additive / safe for existing rows)
-    employee_code = Column(String(30), unique=True, index=True, nullable=True)
-    department = Column(String(100), index=True, nullable=True)
-    position = Column(String(100), nullable=True)
-    hire_date = Column(Date, nullable=True)
-    phone = Column(String(30), nullable=True)
-    address = Column(Text, nullable=True)
     
     # Relationship to password reset tokens
     password_reset_tokens = relationship("PasswordResetToken", back_populates="user", cascade="all, delete-orphan")
