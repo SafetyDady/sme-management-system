@@ -96,30 +96,59 @@ async def create_user(
     # Hash password
     hashed_password = pwd_context.hash(user_data.password)
     
-    # Create new user
-    # Support employee profile fields if provided (safe ignore if model lacks due to migration mismatch)
-    extra_fields = {}
-    for f in ["employee_code", "department", "position", "hire_date", "phone", "address"]:
-        if hasattr(user_data, f):
-            val = getattr(user_data, f, None)
-            if val is not None:
-                extra_fields[f] = val
-
-    db_user = User(
-        username=user_data.username,
-        email=user_data.email,
-        role=user_data.role,
-        hashed_password=hashed_password,
-        is_active=True,
-        created_at=datetime.utcnow(),
-        **extra_fields
-    )
+    # Create new user using safe SQL insert
+    import uuid
+    user_id = str(uuid.uuid4())
     
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    
-    return db_user
+    try:
+        db.execute(
+            text("""
+                INSERT INTO users (id, username, email, hashed_password, role, is_active, created_at)
+                VALUES (:id, :username, :email, :hashed_password, :role, :is_active, :created_at)
+            """),
+            {
+                "id": user_id,
+                "username": user_data.username,
+                "email": user_data.email,
+                "hashed_password": hashed_password,
+                "role": user_data.role,
+                "is_active": True,
+                "created_at": datetime.utcnow()
+            }
+        )
+        db.commit()
+        
+        # Get the created user safely
+        created_user = safe_get_user_by_id(db, user_id)
+        if not created_user:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to retrieve created user"
+            )
+        
+        # Convert SafeUser to dict for response
+        return {
+            "id": created_user.id,
+            "username": created_user.username,
+            "email": created_user.email,
+            "role": created_user.role,
+            "is_active": created_user.is_active,
+            "created_at": created_user.created_at,
+            "last_login": created_user.last_login,
+            "employee_code": None,
+            "department": None,
+            "position": None,
+            "hire_date": None,
+            "phone": None,
+            "address": None
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create user: {str(e)}"
+        )
 
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_profile(
