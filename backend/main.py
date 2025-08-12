@@ -762,6 +762,41 @@ async def reset_admin_password(db: Session = Depends(get_db)):
         logger.error(f"Password reset failed: {e}")
         return {"status": "error", "error": str(e)}
 
+# Fix HR email endpoint  
+@app.post("/debug/fix-hr-email", include_in_schema=False)
+async def fix_hr_email(db: Session = Depends(get_db)):
+    """Fix HR manager email to use valid domain"""
+    try:
+        from sqlalchemy import text
+        
+        # Update hr_manager email to use valid domain
+        result = db.execute(
+            text("""
+            UPDATE users 
+            SET email = :new_email
+            WHERE username = 'hr_manager' AND email = 'hr@sme.local'
+            """),
+            {"new_email": "hr@sme-system.com"}
+        )
+        db.commit()
+        
+        if result.rowcount > 0:
+            return {
+                "status": "success",
+                "message": "HR email updated successfully",
+                "old_email": "hr@sme.local",
+                "new_email": "hr@sme-system.com"
+            }
+        else:
+            return {
+                "status": "no_change",
+                "message": "No HR user found with hr@sme.local email"
+            }
+        
+    except Exception as e:
+        logger.error(f"HR email fix failed: {e}")
+        return {"status": "error", "error": str(e)}
+
 # Include routers
 app.include_router(users.router, prefix="/api/users")
 app.include_router(auth.router)
