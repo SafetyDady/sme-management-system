@@ -145,6 +145,23 @@ def safe_update_user(db: Session, user_id: str, updates: Dict[str, Any]) -> bool
         print(f"Safe user update failed: {e}")
         return False
 
+def safe_delete_user(db: Session, user_id: str) -> bool:
+    """
+    Safely delete user by ID
+    """
+    try:
+        result = db.execute(
+            text("DELETE FROM users WHERE id = :user_id"),
+            {"user_id": user_id}
+        )
+        db.commit()
+        return result.rowcount > 0
+        
+    except Exception as e:
+        db.rollback()
+        print(f"Safe user delete failed: {e}")
+        return False
+
 def check_table_schema(db: Session) -> Dict[str, Any]:
     """
     Check what columns exist in the users table
