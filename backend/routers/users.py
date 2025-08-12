@@ -3,7 +3,12 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
 from app.models import User
-from app.safe_db import safe_get_user_by_username
+from app.safe_db import (
+    safe_get_user_by_username, 
+    safe_get_user_by_id,
+    safe_check_user_exists,
+    safe_update_user
+)
 from app.schemas import UserCreate, UserUpdate, PasswordChange
 from models.user import UserResponse, UserStatusUpdate
 from app.auth import get_current_user
@@ -195,7 +200,8 @@ async def update_user(
     current_user = Depends(require_admin_or_superadmin)
 ):
     """Update user (Admin/SuperAdmin only)"""
-    user = db.query(User).filter(User.id == user_id).first()
+    # Use safe query to get user
+    user = safe_get_user_by_id(db, user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -223,22 +229,15 @@ async def update_user(
             detail="Admin can only assign 'user' role"
         )
     
-    # Check for duplicates
+    # Check for duplicates using safe method
     if user_data.username or user_data.email:
-        query = db.query(User).filter(User.id != user_id)
-        if user_data.username:
-            query = query.filter(User.username == user_data.username)
-        if user_data.email:
-            query = query.filter(User.email == user_data.email)
-        
-        existing_user = query.first()
-        if existing_user:
+        if safe_check_user_exists(db, user_data.username, user_data.email, exclude_id=user_id):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Username or email already taken"
             )
     
-    # Update user
+    # Prepare update data
     update_data = user_data.dict(exclude_unset=True)
     
     # Hash password if provided
@@ -246,14 +245,38 @@ async def update_user(
         update_data['hashed_password'] = pwd_context.hash(update_data['password'])
         del update_data['password']  # Remove plain password
     
-    for field, value in update_data.items():
-        if hasattr(user, field):
-            setattr(user, field, value)
+    # Update user using safe method
+    success = safe_update_user(db, user_id, update_data)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update user"
+        )
     
-    db.commit()
-    db.refresh(user)
+    # Get updated user data
+    updated_user = safe_get_user_by_id(db, user_id)
+    if not updated_user:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve updated user"
+        )
     
-    return user
+    # Convert to response format
+    return {
+        "id": updated_user.id,
+        "username": updated_user.username,
+        "email": updated_user.email,
+        "role": updated_user.role,
+        "is_active": updated_user.is_active,
+        "created_at": updated_user.created_at,
+        "last_login": updated_user.last_login,
+        "employee_code": None,
+        "department": None,
+        "position": None,
+        "hire_date": None,
+        "phone": None,
+        "address": None
+    }
 
 @router.delete("/{user_id}")
 async def delete_user(
@@ -268,7 +291,7 @@ async def delete_user(
             detail="Cannot delete your own account"
         )
     
-    user = db.query(User).filter(User.id == user_id).first()
+    user = safe_get_user_by_id(db, user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -282,8 +305,24 @@ async def delete_user(
             detail="Admin cannot delete superadmin users"
         )
     
-    db.delete(user)
-    db.commit()
+    try:
+        # Use raw SQL to delete user
+        result = db.execute(text("DELETE FROM users WHERE id = :user_id"), {"user_id": user_id})
+        db.commit()
+        
+        if result.rowcount == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found or already deleted"
+            )
+            
+        return {"message": "User deleted successfully"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete user: {str(e)}"
+        )
     
     return {"message": "User deleted successfully"}
 
@@ -301,7 +340,7 @@ async def toggle_user_status(
             detail="Cannot change your own status"
         )
     
-    user = db.query(User).filter(User.id == user_id).first()
+    user = safe_get_user_by_id(db, user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -315,11 +354,38 @@ async def toggle_user_status(
             detail="Admin cannot change superadmin status"
         )
     
-    user.is_active = status_data.is_active
-    db.commit()
-    db.refresh(user)
+    # Update status using safe method
+    success = safe_update_user(db, user_id, {"is_active": status_data.is_active})
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update user status"
+        )
     
-    return user
+    # Get updated user data
+    updated_user = safe_get_user_by_id(db, user_id)
+    if not updated_user:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve updated user"
+        )
+    
+    # Convert to response format
+    return {
+        "id": updated_user.id,
+        "username": updated_user.username,
+        "email": updated_user.email,
+        "role": updated_user.role,
+        "is_active": updated_user.is_active,
+        "created_at": updated_user.created_at,
+        "last_login": updated_user.last_login,
+        "employee_code": None,
+        "department": None,
+        "position": None,
+        "hire_date": None,
+        "phone": None,
+        "address": None
+    }
 
 @router.post("/me/change-password")
 async def change_password(
