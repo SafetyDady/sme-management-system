@@ -56,23 +56,37 @@ async def lifespan(app: FastAPI):
         from app.database import SessionLocal
         from app.auth import get_password_hash
         from datetime import datetime
+        from sqlalchemy import text
+        import uuid
         
         db = SessionLocal()
         try:
-            # Check if admin user exists
-            admin_user = db.query(User).filter(User.username == "admin").first()
-            if not admin_user:
-                # Create default admin user
+            # Check if admin user exists using safe query
+            result = db.execute(
+                text("SELECT username FROM users WHERE username = :username"),
+                {"username": "admin"}
+            ).fetchone()
+            
+            if not result:
+                # Create default admin user with raw SQL
+                user_id = str(uuid.uuid4())
                 hashed_password = get_password_hash("admin123")
-                admin_user = User(
-                    username="admin",
-                    email="admin@sme.local",
-                    hashed_password=hashed_password,
-                    role="superadmin",
-                    is_active=True,
-                    created_at=datetime.utcnow()
+                
+                db.execute(
+                    text("""
+                    INSERT INTO users (id, username, email, hashed_password, role, is_active, created_at)
+                    VALUES (:id, :username, :email, :hashed_password, :role, :is_active, :created_at)
+                    """),
+                    {
+                        "id": user_id,
+                        "username": "admin",
+                        "email": "admin@sme.local", 
+                        "hashed_password": hashed_password,
+                        "role": "superadmin",
+                        "is_active": True,
+                        "created_at": datetime.utcnow()
+                    }
                 )
-                db.add(admin_user)
                 db.commit()
                 logger.info("✅ Created default admin user: admin / admin123")
             else:
@@ -626,6 +640,56 @@ async def debug_schema(db: Session = Depends(get_db)):
             "error": str(e),
             "timestamp": datetime.utcnow().isoformat()
         }
+
+# Emergency admin creation endpoint
+@app.post("/debug/create-admin", include_in_schema=False)
+async def create_admin_emergency(db: Session = Depends(get_db)):
+    """Emergency endpoint to create admin user"""
+    try:
+        from app.auth import get_password_hash
+        from sqlalchemy import text
+        import uuid
+        
+        # Check if admin exists
+        result = db.execute(
+            text("SELECT username FROM users WHERE username = :username"),
+            {"username": "admin"}
+        ).fetchone()
+        
+        if result:
+            return {"status": "exists", "message": "Admin user already exists"}
+        
+        # Create admin user
+        user_id = str(uuid.uuid4())
+        hashed_password = get_password_hash("admin123")
+        
+        db.execute(
+            text("""
+            INSERT INTO users (id, username, email, hashed_password, role, is_active, created_at)
+            VALUES (:id, :username, :email, :hashed_password, :role, :is_active, :created_at)
+            """),
+            {
+                "id": user_id,
+                "username": "admin",
+                "email": "admin@sme.local", 
+                "hashed_password": hashed_password,
+                "role": "superadmin",
+                "is_active": True,
+                "created_at": datetime.utcnow()
+            }
+        )
+        db.commit()
+        
+        return {
+            "status": "created",
+            "message": "Admin user created successfully",
+            "username": "admin",
+            "password": "admin123"
+        }
+        
+    except Exception as e:
+        logger.error(f"Admin creation failed: {e}")
+        return {"status": "error", "error": str(e)}
 
 # Include routers
 app.include_router(users.router, prefix="/api/users")
