@@ -1,21 +1,21 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
-from app.database import get_db
+from ty        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create user: {str(e)}"
+        )
+
+@router.get("/{user_id}", response_model=UserResponse)from app.database import get_db
 from app.models import User
-from app.safe_db import (
-    safe_get_user_by_username, 
-    safe_get_user_by_id,
-    safe_check_user_exists,
-    safe_update_user
-)
 from app.schemas import UserCreate, UserUpdate, PasswordChange
 from models.user import UserResponse, UserStatusUpdate
 from app.auth import get_current_user
 from dependencies.auth import require_admin_or_superadmin, require_superadmin
 from passlib.context import CryptContext
 from datetime import datetime
-from sqlalchemy import text
 
 router = APIRouter(tags=["users"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -27,16 +27,19 @@ async def get_users(
 ):
     """Get all users (Admin/SuperAdmin only)"""
     try:
-        # Use safe raw SQL query with essential columns only
-        result = db.execute(text("""
-            SELECT id, username, email, role, is_active, created_at, last_login
-            FROM users
-            ORDER BY created_at DESC
-        """)).fetchall()
+        from sqlalchemy import text
         
-        # Convert to dict format for response
+        # Use safe query to avoid column issues
+        users_data = db.execute(
+            text("""
+            SELECT id, username, email, role, is_active, created_at, last_login 
+            FROM users 
+            ORDER BY created_at DESC
+            """)
+        ).fetchall()
+        
         users = []
-        for row in result:
+        for row in users_data:
             users.append({
                 "id": row.id,
                 "username": row.username,
@@ -44,16 +47,11 @@ async def get_users(
                 "role": row.role,
                 "is_active": row.is_active,
                 "created_at": row.created_at,
-                "last_login": row.last_login,
-                "employee_code": None,  # Set to None for backward compatibility
-                "department": None,
-                "position": None,
-                "hire_date": None,
-                "phone": None,
-                "address": None
+                "last_login": row.last_login
             })
         
         return users
+        
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -74,10 +72,11 @@ async def create_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin can only create users with 'user' role"
         )
+    
     # Check if username or email already exists using safe query
     from sqlalchemy import text
     existing_user = db.execute(
-        text("SELECT username, email FROM users WHERE username = :username OR email = :email LIMIT 1"),
+        text("SELECT username, email FROM users WHERE username = :username OR email = :email"),
         {"username": user_data.username, "email": user_data.email}
     ).fetchone()
     
@@ -96,15 +95,15 @@ async def create_user(
     # Hash password
     hashed_password = pwd_context.hash(user_data.password)
     
-    # Create new user using safe SQL insert
+    # Create new user using safe SQL (compatible with both old and new schema)
     import uuid
     user_id = str(uuid.uuid4())
     
     try:
         db.execute(
             text("""
-                INSERT INTO users (id, username, email, hashed_password, role, is_active, created_at)
-                VALUES (:id, :username, :email, :hashed_password, :role, :is_active, :created_at)
+            INSERT INTO users (id, username, email, hashed_password, role, is_active, created_at)
+            VALUES (:id, :username, :email, :hashed_password, :role, :is_active, :created_at)
             """),
             {
                 "id": user_id,
@@ -118,29 +117,20 @@ async def create_user(
         )
         db.commit()
         
-        # Get the created user safely
-        created_user = safe_get_user_by_id(db, user_id)
-        if not created_user:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to retrieve created user"
-            )
+        # Return created user data
+        new_user_data = db.execute(
+            text("SELECT * FROM users WHERE id = :id"),
+            {"id": user_id}
+        ).fetchone()
         
-        # Convert SafeUser to dict for response
         return {
-            "id": created_user.id,
-            "username": created_user.username,
-            "email": created_user.email,
-            "role": created_user.role,
-            "is_active": created_user.is_active,
-            "created_at": created_user.created_at,
-            "last_login": created_user.last_login,
-            "employee_code": None,
-            "department": None,
-            "position": None,
-            "hire_date": None,
-            "phone": None,
-            "address": None
+            "id": new_user_data.id,
+            "username": new_user_data.username,
+            "email": new_user_data.email,
+            "role": new_user_data.role,
+            "is_active": new_user_data.is_active,
+            "created_at": new_user_data.created_at,
+            "last_login": new_user_data.last_login
         }
         
     except Exception as e:
@@ -149,6 +139,14 @@ async def create_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create user: {str(e)}"
         )
+        **extra_fields
+    )
+    
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    
+    return db_user
 
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_profile(
@@ -164,30 +162,16 @@ async def update_current_user_profile(
     current_user = Depends(get_current_user)
 ):
     """Update current user profile"""
-    # Check if username/email is already taken by another user using safe query
+    # Check if username/email is already taken by another user
     if user_data.username or user_data.email:
-        conditions = []
-        params = {"current_user_id": current_user.id}
-        
+        query = db.query(User).filter(User.id != current_user.id)
         if user_data.username:
-            conditions.append("username = :username")
-            params["username"] = user_data.username
+            query = query.filter(User.username == user_data.username)
         if user_data.email:
-            conditions.append("email = :email") 
-            params["email"] = user_data.email
-            
-        if conditions:
-            query = f"SELECT id FROM users WHERE id != :current_user_id AND ({' OR '.join(conditions)}) LIMIT 1"
-            existing_user = db.execute(text(query), params).fetchone()
-            if existing_user:
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail="Username or email already exists"
-                )
-    
-    # Update user data using safe method
-    success = safe_update_user(db, current_user.id, user_data.dict(exclude_unset=True))
-    if not success:
+            query = query.filter(User.email == user_data.email)
+        
+        existing_user = query.first()
+        if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Username or email already taken"
@@ -228,8 +212,7 @@ async def get_user_by_id(
             detail="Not authorized to view this user"
         )
     
-    # Use safe query to get user by ID
-    user = safe_get_user_by_id(db, user_id)
+    user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -246,8 +229,7 @@ async def update_user(
     current_user = Depends(require_admin_or_superadmin)
 ):
     """Update user (Admin/SuperAdmin only)"""
-    # Use safe query to get user
-    user = safe_get_user_by_id(db, user_id)
+    user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -275,15 +257,22 @@ async def update_user(
             detail="Admin can only assign 'user' role"
         )
     
-    # Check for duplicates using safe method
+    # Check for duplicates
     if user_data.username or user_data.email:
-        if safe_check_user_exists(db, user_data.username, user_data.email, exclude_id=user_id):
+        query = db.query(User).filter(User.id != user_id)
+        if user_data.username:
+            query = query.filter(User.username == user_data.username)
+        if user_data.email:
+            query = query.filter(User.email == user_data.email)
+        
+        existing_user = query.first()
+        if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Username or email already taken"
             )
     
-    # Prepare update data
+    # Update user
     update_data = user_data.dict(exclude_unset=True)
     
     # Hash password if provided
@@ -291,38 +280,14 @@ async def update_user(
         update_data['hashed_password'] = pwd_context.hash(update_data['password'])
         del update_data['password']  # Remove plain password
     
-    # Update user using safe method
-    success = safe_update_user(db, user_id, update_data)
-    if not success:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update user"
-        )
+    for field, value in update_data.items():
+        if hasattr(user, field):
+            setattr(user, field, value)
     
-    # Get updated user data
-    updated_user = safe_get_user_by_id(db, user_id)
-    if not updated_user:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve updated user"
-        )
+    db.commit()
+    db.refresh(user)
     
-    # Convert to response format
-    return {
-        "id": updated_user.id,
-        "username": updated_user.username,
-        "email": updated_user.email,
-        "role": updated_user.role,
-        "is_active": updated_user.is_active,
-        "created_at": updated_user.created_at,
-        "last_login": updated_user.last_login,
-        "employee_code": None,
-        "department": None,
-        "position": None,
-        "hire_date": None,
-        "phone": None,
-        "address": None
-    }
+    return user
 
 @router.delete("/{user_id}")
 async def delete_user(
@@ -337,7 +302,7 @@ async def delete_user(
             detail="Cannot delete your own account"
         )
     
-    user = safe_get_user_by_id(db, user_id)
+    user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -351,24 +316,8 @@ async def delete_user(
             detail="Admin cannot delete superadmin users"
         )
     
-    try:
-        # Use raw SQL to delete user
-        result = db.execute(text("DELETE FROM users WHERE id = :user_id"), {"user_id": user_id})
-        db.commit()
-        
-        if result.rowcount == 0:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found or already deleted"
-            )
-            
-        return {"message": "User deleted successfully"}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete user: {str(e)}"
-        )
+    db.delete(user)
+    db.commit()
     
     return {"message": "User deleted successfully"}
 
@@ -386,7 +335,7 @@ async def toggle_user_status(
             detail="Cannot change your own status"
         )
     
-    user = safe_get_user_by_id(db, user_id)
+    user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -400,38 +349,11 @@ async def toggle_user_status(
             detail="Admin cannot change superadmin status"
         )
     
-    # Update status using safe method
-    success = safe_update_user(db, user_id, {"is_active": status_data.is_active})
-    if not success:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update user status"
-        )
+    user.is_active = status_data.is_active
+    db.commit()
+    db.refresh(user)
     
-    # Get updated user data
-    updated_user = safe_get_user_by_id(db, user_id)
-    if not updated_user:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve updated user"
-        )
-    
-    # Convert to response format
-    return {
-        "id": updated_user.id,
-        "username": updated_user.username,
-        "email": updated_user.email,
-        "role": updated_user.role,
-        "is_active": updated_user.is_active,
-        "created_at": updated_user.created_at,
-        "last_login": updated_user.last_login,
-        "employee_code": None,
-        "department": None,
-        "position": None,
-        "hire_date": None,
-        "phone": None,
-        "address": None
-    }
+    return user
 
 @router.post("/me/change-password")
 async def change_password(
