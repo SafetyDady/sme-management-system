@@ -55,6 +55,96 @@ def safe_get_user_by_username(db: Session, username: str) -> Optional[SafeUser]:
         print(f"Safe user query failed: {e}")
         return None
 
+def safe_get_user_by_id(db: Session, user_id: str) -> Optional[SafeUser]:
+    """
+    Safely get user by id using raw SQL
+    """
+    try:
+        result = db.execute(
+            text("""
+            SELECT id, username, email, hashed_password, role, is_active, 
+                   created_at, last_login 
+            FROM users 
+            WHERE id = :user_id 
+            LIMIT 1
+            """),
+            {"user_id": user_id}
+        ).fetchone()
+        
+        if result:
+            return SafeUser(
+                id=result.id,
+                username=result.username,
+                email=result.email,
+                hashed_password=result.hashed_password,
+                role=result.role,
+                is_active=result.is_active,
+                created_at=result.created_at,
+                last_login=result.last_login
+            )
+        return None
+        
+    except Exception as e:
+        print(f"Safe user by id query failed: {e}")
+        return None
+
+def safe_check_user_exists(db: Session, username: str = None, email: str = None) -> bool:
+    """
+    Check if user exists by username or email
+    """
+    try:
+        if username and email:
+            result = db.execute(
+                text("SELECT id FROM users WHERE username = :username OR email = :email"),
+                {"username": username, "email": email}
+            ).fetchone()
+        elif username:
+            result = db.execute(
+                text("SELECT id FROM users WHERE username = :username"),
+                {"username": username}
+            ).fetchone()
+        elif email:
+            result = db.execute(
+                text("SELECT id FROM users WHERE email = :email"),
+                {"email": email}
+            ).fetchone()
+        else:
+            return False
+            
+        return result is not None
+        
+    except Exception as e:
+        print(f"Safe user exists check failed: {e}")
+        return True  # Assume exists to prevent duplicates on error
+
+def safe_update_user(db: Session, user_id: str, updates: Dict[str, Any]) -> bool:
+    """
+    Safely update user with only essential fields
+    """
+    try:
+        # Build dynamic update query
+        set_clauses = []
+        params = {"user_id": user_id}
+        
+        for key, value in updates.items():
+            if key in ['username', 'email', 'role', 'is_active', 'hashed_password', 'last_login']:
+                set_clauses.append(f"{key} = :{key}")
+                params[key] = value
+        
+        if not set_clauses:
+            return False
+            
+        query = f"UPDATE users SET {', '.join(set_clauses)} WHERE id = :user_id"
+        result = db.execute(text(query), params)
+        db.commit()
+        
+        return result.rowcount > 0
+        
+    except Exception as e:
+        db.rollback()
+        print(f"Safe user update failed: {e}")
+        return False
+
 def check_table_schema(db: Session) -> Dict[str, Any]:
     """
     Check what columns exist in the users table
