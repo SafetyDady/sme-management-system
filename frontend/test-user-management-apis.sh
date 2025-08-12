@@ -3,7 +3,7 @@
 # 🧪 API Testing Script for Backend Development
 # Run this script to test the new User Management APIs
 
-RAILWAY_URL="https://web-production-5b6ab.up.railway.app"
+RAILWAY_URL="https://sme-management-system-production.up.railway.app"
 
 echo "🚀 User Management API Testing"
 echo "=============================="

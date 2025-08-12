@@ -1,5 +1,78 @@
 import Cookies from 'js-cookie';
 
+// Inline role configuration to avoid import issues
+const ROLES_CONFIG = {
+  "roles": {
+    "superadmin": { "name": "Super Admin", "level": 4, "permissions": ["*"] },
+    "admin": { 
+      "name": "Admin", 
+      "level": 3,
+      "permissions": [
+        "user.view", "user.create", "user.edit", "user.delete",
+        "employee.view", "employee.create", "employee.edit", "employee.delete",
+        "hr.leave.view", "hr.leave.approve", "system.settings.view"
+      ]
+    },
+    "hr": {
+      "name": "HR Manager", "level": 2,
+      "permissions": [
+        "employee.view", "employee.create", "employee.edit", "employee.delete",
+        "user.view", "user.create", "user.edit",
+        "hr.leave.view", "hr.leave.create", "hr.leave.edit", "hr.leave.approve",
+        "hr.daily.view", "hr.daily.approve", "hr.reports.view"
+      ]
+    },
+    "user": {
+      "name": "Employee", "level": 1,
+      "permissions": ["profile.view", "profile.edit", "hr.leave.view", "hr.leave.create", "hr.daily.view", "hr.daily.create"]
+    }
+  },
+  "role_mapping": {
+    "superadmin": "superadmin", "admin1": "admin", "admin2": "admin", 
+    "hr": "hr", "user": "user", "employee": "user"
+  }
+};
+
+// Inline permission functions
+const normalizeRole = (rawRole) => ROLES_CONFIG.role_mapping[rawRole] || "user";
+const getRolePermissions = (role) => {
+  const normalizedRole = normalizeRole(role);
+  return ROLES_CONFIG.roles[normalizedRole]?.permissions || [];
+};
+const checkPermission = (userRole, requiredPermission) => {
+  const permissions = getRolePermissions(userRole);
+  if (permissions.includes("*")) return true;
+  if (permissions.includes(requiredPermission)) return true;
+  for (const permission of permissions) {
+    if (permission.endsWith(".*")) {
+      const prefix = permission.slice(0, -2);
+      if (requiredPermission.startsWith(prefix + ".")) return true;
+    }
+  }
+  return false;
+};
+const getRoleLevel = (role) => {
+  const normalizedRole = normalizeRole(role);
+  return ROLES_CONFIG.roles[normalizedRole]?.level || 0;
+};
+const canAccessRole = (userRole, requiredRole) => {
+  const userLevel = getRoleLevel(userRole);
+  const requiredLevel = getRoleLevel(requiredRole);
+  return userLevel >= requiredLevel;
+};
+const can = (userRole, permissionOrRole) => {
+  if (permissionOrRole.includes('.')) {
+    return checkPermission(userRole, permissionOrRole);
+  }
+  return canAccessRole(userRole, permissionOrRole);
+};
+const checkRole = (userData, requiredRoles) => {
+  if (!userData || !userData.role) return false;
+  const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
+  const userRole = normalizeRole(userData.role);
+  return roles.some(role => canAccessRole(userRole, role));
+};
+
 // Token management
 export const getToken = () => {
   return Cookies.get('auth_token');
@@ -17,10 +90,21 @@ export const removeToken = () => {
 // User data management
 export const getUserData = () => {
   const userData = Cookies.get('user_data');
-  return userData ? JSON.parse(userData) : null;
+  if (!userData) return null;
+  
+  const user = JSON.parse(userData);
+  // Always normalize role when retrieving user data
+  if (user.role) {
+    user.role = normalizeRole(user.role);
+  }
+  return user;
 };
 
 export const setUserData = (userData) => {
+  // Normalize role before storing
+  if (userData.role) {
+    userData.role = normalizeRole(userData.role);
+  }
   Cookies.set('user_data', JSON.stringify(userData), { expires: 1/24 });
 };
 
@@ -35,71 +119,34 @@ export const isAuthenticated = () => {
   return !!(token && userData);
 };
 
-export const hasRole = (requiredRole) => {
-  const userData = getUserData();
-  if (!userData) {
-    console.log('🔍 hasRole: No user data found');
-    return false;
+// Unified permission checking - wrapper for the inline function
+export const hasPermission = (permission) => {
+  const user = getUserData();
+  return user ? can(user.role, permission) : false;
+};
+
+// Role checking (legacy support + new unified approach)
+export const hasRole = (userData, requiredRoles) => {
+  // Handle new usage: hasRole(user, roles) 
+  if (userData && typeof userData === 'object' && userData.role) {
+    return checkRole(userData, requiredRoles);
   }
   
-  let userRole = userData.role;
-  console.log('🔍 hasRole check:', { userRole, requiredRole, userData });
-  
-  // Fix for backend that returns username as role (admin1 -> admin)
-  if (userRole === 'admin1' || userRole === 'admin2') {
-    userRole = 'admin';
-    console.log('🔄 Normalized role from', userData.role, 'to', userRole);
-  }
-  
-  // Role hierarchy: superadmin > admin > user
-  const roleHierarchy = {
-    'superadmin': 3,
-    'admin': 2,
-    'user': 1
-  };
-  
-  const userLevel = roleHierarchy[userRole] || 0;
-  const requiredLevel = roleHierarchy[requiredRole] || 0;
-  
-  const hasAccess = userLevel >= requiredLevel;
-  console.log('🔍 Role check result:', { 
-    originalRole: userData.role,
-    normalizedRole: userRole,
-    userLevel, 
-    requiredLevel, 
-    hasAccess
-  });
-  
-  return hasAccess;
+  // Handle legacy usage: hasRole('admin')
+  const user = getUserData();
+  return user ? checkRole(user, userData) : false;
 };
 
 export const canManageUser = (targetUser) => {
   const currentUser = getUserData();
-  if (!currentUser) return false;
+  if (!currentUser || !targetUser) return false;
   
-  // Superadmin can manage everyone
-  if (currentUser.role === 'superadmin') return true;
-  
-  // Admin can only manage users with 'user' role
-  if (currentUser.role === 'admin') {
-    return targetUser.role === 'user';
-  }
-  
-  // Users can only manage themselves
-  if (currentUser.role === 'user') {
-    return currentUser.id === targetUser.id;
-  }
-  
-  return false;
+  // Use permission-based checking instead of role hierarchy
+  return hasPermission('user.edit');
 };
 
 export const getRedirectPath = (role) => {
-  // Normalize role first (admin1, admin2 -> admin)
-  let normalizedRole = role;
-  if (role === 'admin1' || role === 'admin2') {
-    normalizedRole = 'admin';
-  }
-  
+  const normalizedRole = normalizeRole(role);
   console.log('🔀 Redirect path for role:', { originalRole: role, normalizedRole });
   
   switch (normalizedRole) {
@@ -109,9 +156,12 @@ export const getRedirectPath = (role) => {
     case 'admin':
       console.log('➡️ Redirecting admin to /dashboard');
       return '/dashboard';
+    case 'hr':
+      console.log('➡️ Redirecting hr to /hr');
+      return '/hr';  // Direct to HR dashboard
     case 'user':
-      console.log('➡️ Redirecting user to /profile');
-      return '/dashboard'; // Changed to /dashboard for now since /profile doesn't exist
+      console.log('➡️ Redirecting user to /dashboard');
+      return '/dashboard';
     default:
       console.log('➡️ Unknown role, redirecting to /login');
       return '/login';

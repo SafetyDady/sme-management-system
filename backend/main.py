@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.orm import Session
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import List
 import os
 import uuid
@@ -32,7 +32,7 @@ from app.security import (
 )
 
 # Import new routers
-from routers import users, auth
+from routers import users, auth, employees
 from app.logging_config import (
     setup_logging, 
     get_logger, 
@@ -50,6 +50,52 @@ async def lifespan(app: FastAPI):
     """Application lifespan events"""
     # Startup
     logger.info("Application starting up")
+    
+    # Initialize admin user if not exists
+    try:
+        from app.database import SessionLocal
+        from app.auth import get_password_hash
+        from datetime import datetime
+        from sqlalchemy import text
+        import uuid
+        
+        db = SessionLocal()
+        try:
+            # Check if admin user exists using safe query
+            result = db.execute(
+                text("SELECT username FROM users WHERE username = :username"),
+                {"username": "admin"}
+            ).fetchone()
+            
+            if not result:
+                # Create default admin user with raw SQL
+                user_id = str(uuid.uuid4())
+                hashed_password = get_password_hash("admin123")
+                
+                db.execute(
+                    text("""
+                    INSERT INTO users (id, username, email, hashed_password, role, is_active, created_at)
+                    VALUES (:id, :username, :email, :hashed_password, :role, :is_active, :created_at)
+                    """),
+                    {
+                        "id": user_id,
+                        "username": "admin",
+                        "email": "admin@sme.local", 
+                        "hashed_password": hashed_password,
+                        "role": "superadmin",
+                        "is_active": True,
+                        "created_at": datetime.utcnow()
+                    }
+                )
+                db.commit()
+                logger.info("✅ Created default admin user: admin / admin123")
+            else:
+                logger.info("✅ Admin user already exists")
+        finally:
+            db.close()
+    except Exception as e:
+        logger.error(f"❌ Error initializing admin user: {e}")
+    
     yield
     # Shutdown
     logger.info("Application shutting down")
@@ -75,16 +121,24 @@ app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        # Production Frontend URL
+        "https://sme-management-frontend-production.up.railway.app",
+        
+        # Development origins  
         "http://localhost:3000",
+        "http://localhost:3001",
         "http://localhost:5173", 
         "http://localhost:5174",
         "https://localhost:3000",
+        "https://localhost:3001",
         "https://localhost:5173", 
         "https://localhost:5174",
         "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:5174",
         "https://127.0.0.1:3000",
+        "https://127.0.0.1:3001",
         "https://127.0.0.1:5173",
         "https://127.0.0.1:5174"
     ],
@@ -371,8 +425,9 @@ async def health_check(request: Request):
     # Add database health check
     try:
         from app.database import engine
+        from sqlalchemy import text
         with engine.connect() as conn:
-            conn.execute("SELECT 1")
+            conn.execute(text("SELECT 1"))
         health_status["database"] = "connected"
     except Exception as e:
         logger.error("Database health check failed", error=str(e))
@@ -398,6 +453,92 @@ async def validate_token(request: Request, current_user: User = Depends(get_curr
 async def logout(request: Request, current_user: User = Depends(get_current_user)):
     """Logout endpoint (for logging purposes)"""
     
+    # Log logout event
+    log_security_event(
+        "logout",
+        request, 
+        {"username": current_user.username},
+        "User logged out"
+    )
+    
+    return {"message": "Logged out successfully"}
+
+@app.post("/admin/init-admin")
+async def init_admin_user(db: Session = Depends(get_db)):
+    """Initialize admin user if not exists - for production setup"""
+    try:
+        # Check if admin user already exists
+        admin_user = db.query(User).filter(User.username == "admin").first()
+        if admin_user:
+            return {
+                "message": "Admin user already exists",
+                "username": admin_user.username,
+                "role": admin_user.role,
+                "is_active": admin_user.is_active,
+                "created_at": admin_user.created_at.isoformat()
+            }
+        
+        # Create admin user
+        hashed_password = get_password_hash("admin123")
+        admin_user = User(
+            username="admin",
+            email="admin@company.com",
+            hashed_password=hashed_password,
+            role="SuperAdmin",
+            is_active=True
+        )
+        
+        db.add(admin_user)
+        db.commit()
+        db.refresh(admin_user)
+        
+        logger.info(f"Admin user created: {admin_user.username}")
+        
+        return {
+            "message": "Admin user created successfully",
+            "username": admin_user.username,
+            "role": admin_user.role,
+            "is_active": admin_user.is_active,
+            "created_at": admin_user.created_at.isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating admin user: {str(e)}")
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to create admin user: {str(e)}"
+        )
+
+@app.get("/admin/check-users")
+async def check_users(db: Session = Depends(get_db)):
+    """Check existing users in database - for debugging"""
+    try:
+        users = db.query(User).all()
+        users_info = []
+        
+        for user in users:
+            users_info.append({
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "role": user.role,
+                "is_active": user.is_active,
+                "created_at": user.created_at.isoformat() if user.created_at else None
+            })
+        
+        return {
+            "total_users": len(users),
+            "users": users_info
+        }
+        
+    except Exception as e:
+        logger.error(f"Error checking users: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to check users: {str(e)}"
+        )
+    
     log_auth_event(
         "logout",
         username=current_user.username,
@@ -408,6 +549,61 @@ async def logout(request: Request, current_user: User = Depends(get_current_user
         "message": "Successfully logged out",
         "username": current_user.username
     }
+
+# Additional admin check endpoint
+@app.get("/admin/check-users")
+async def check_admin_users():
+    """Check if admin users exist (for debugging)"""
+    try:
+        from app.database import SessionLocal
+        db = SessionLocal()
+        try:
+            admin_count = db.query(User).filter(User.role.in_(["admin", "superadmin"])).count()
+            total_users = db.query(User).count()
+            admin_user = db.query(User).filter(User.username == "admin").first()
+            return {
+                "admin_users_count": admin_count,
+                "total_users": total_users,
+                "admin_user_exists": admin_user is not None,
+                "admin_user_active": admin_user.is_active if admin_user else None,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        finally:
+            db.close()
+    except Exception as e:
+        return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+
+@app.post("/admin/init-admin")
+async def init_admin_user():
+    """Manually initialize admin user (for production fix)"""
+    try:
+        from app.database import SessionLocal
+        from app.auth import get_password_hash
+        
+        db = SessionLocal()
+        try:
+            # Check if admin user exists
+            admin_user = db.query(User).filter(User.username == "admin").first()
+            if admin_user:
+                return {"message": "Admin user already exists", "username": "admin"}
+            
+            # Create default admin user
+            hashed_password = get_password_hash("admin123")
+            admin_user = User(
+                username="admin",
+                email="admin@sme.local",
+                hashed_password=hashed_password,
+                role="superadmin",
+                is_active=True,
+                created_at=datetime.utcnow()
+            )
+            db.add(admin_user)
+            db.commit()
+            return {"message": "✅ Admin user created successfully", "username": "admin", "password": "admin123"}
+        finally:
+            db.close()
+    except Exception as e:
+        return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
 
 # Development/debugging endpoints (only in development)
 if os.getenv('ENVIRONMENT', 'development') == 'development':
@@ -424,9 +620,187 @@ if os.getenv('ENVIRONMENT', 'development') == 'development':
             }
         }
 
+# Debug endpoint for database schema
+@app.get("/debug/schema", include_in_schema=False)
+async def debug_schema(db: Session = Depends(get_db)):
+    """Debug endpoint to check database schema"""
+    try:
+        from app.safe_db import check_table_schema
+        schema_info = check_table_schema(db)
+        
+        return {
+            "status": "success",
+            "schema": schema_info,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Schema debug failed: {e}")
+        return {
+            "status": "error", 
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+# Emergency admin creation endpoint
+@app.post("/debug/create-admin", include_in_schema=False)
+async def create_admin_emergency(db: Session = Depends(get_db)):
+    """Emergency endpoint to create admin user"""
+    try:
+        from app.auth import get_password_hash
+        from sqlalchemy import text
+        import uuid
+        
+        # Check if admin exists
+        result = db.execute(
+            text("SELECT username FROM users WHERE username = :username"),
+            {"username": "admin"}
+        ).fetchone()
+        
+        if result:
+            return {"status": "exists", "message": "Admin user already exists"}
+        
+        # Create admin user
+        user_id = str(uuid.uuid4())
+        hashed_password = get_password_hash("admin123")
+        
+        db.execute(
+            text("""
+            INSERT INTO users (id, username, email, hashed_password, role, is_active, created_at)
+            VALUES (:id, :username, :email, :hashed_password, :role, :is_active, :created_at)
+            """),
+            {
+                "id": user_id,
+                "username": "admin",
+                "email": "admin@sme.local", 
+                "hashed_password": hashed_password,
+                "role": "superadmin",
+                "is_active": True,
+                "created_at": datetime.utcnow()
+            }
+        )
+        db.commit()
+        
+        return {
+            "status": "created",
+            "message": "Admin user created successfully",
+            "username": "admin",
+            "password": "admin123"
+        }
+        
+    except Exception as e:
+        logger.error(f"Admin creation failed: {e}")
+        return {"status": "error", "error": str(e)}
+
+# Debug users endpoint
+@app.get("/debug/users", include_in_schema=False)
+async def debug_users(db: Session = Depends(get_db)):
+    """Debug endpoint to list users (without sensitive data)"""
+    try:
+        from sqlalchemy import text
+        
+        result = db.execute(
+            text("SELECT username, email, role, is_active, created_at FROM users")
+        ).fetchall()
+        
+        users = []
+        for row in result:
+            users.append({
+                "username": row.username,
+                "email": row.email,
+                "role": row.role,
+                "is_active": row.is_active,
+                "created_at": str(row.created_at)
+            })
+        
+        return {
+            "status": "success",
+            "users": users,
+            "count": len(users),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Users debug failed: {e}")
+        return {"status": "error", "error": str(e)}
+
+# Reset admin password endpoint
+@app.post("/debug/reset-admin", include_in_schema=False)
+async def reset_admin_password(db: Session = Depends(get_db)):
+    """Reset admin password to default"""
+    try:
+        from app.auth import get_password_hash
+        from sqlalchemy import text
+        
+        # Reset admin password
+        new_password = "admin123"
+        hashed_password = get_password_hash(new_password)
+        
+        result = db.execute(
+            text("""
+            UPDATE users 
+            SET hashed_password = :hashed_password
+            WHERE username = 'admin'
+            """),
+            {"hashed_password": hashed_password}
+        )
+        db.commit()
+        
+        if result.rowcount > 0:
+            return {
+                "status": "success",
+                "message": "Admin password reset successfully",
+                "username": "admin",
+                "password": new_password
+            }
+        else:
+            return {
+                "status": "not_found",
+                "message": "Admin user not found"
+            }
+        
+    except Exception as e:
+        logger.error(f"Password reset failed: {e}")
+        return {"status": "error", "error": str(e)}
+
+# Fix HR email endpoint  
+@app.post("/debug/fix-hr-email", include_in_schema=False)
+async def fix_hr_email(db: Session = Depends(get_db)):
+    """Fix HR manager email to use valid domain"""
+    try:
+        from sqlalchemy import text
+        
+        # Update hr_manager email to use valid domain
+        result = db.execute(
+            text("""
+            UPDATE users 
+            SET email = :new_email
+            WHERE username = 'hr_manager' AND email = 'hr@sme.local'
+            """),
+            {"new_email": "hr@sme-system.com"}
+        )
+        db.commit()
+        
+        if result.rowcount > 0:
+            return {
+                "status": "success",
+                "message": "HR email updated successfully",
+                "old_email": "hr@sme.local",
+                "new_email": "hr@sme-system.com"
+            }
+        else:
+            return {
+                "status": "no_change",
+                "message": "No HR user found with hr@sme.local email"
+            }
+        
+    except Exception as e:
+        logger.error(f"HR email fix failed: {e}")
+        return {"status": "error", "error": str(e)}
+
 # Include routers
-app.include_router(users.router)
+app.include_router(users.router, prefix="/api/users")
 app.include_router(auth.router)
+app.include_router(employees.router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn

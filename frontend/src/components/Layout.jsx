@@ -31,16 +31,26 @@ const Layout = ({ children }) => {
       name: 'Dashboard',
       href: '/dashboard',
       icon: Home,
-      roles: ['superadmin', 'admin', 'user']
+      roles: ['superadmin', 'admin', 'hr', 'user']
     });
 
-    // User Management - only for superadmin and admin
-    if (hasRole(user, ['superadmin', 'admin'])) {
+    // HR Dashboard - for HR, Admin, and SuperAdmin
+    if (hasRole(user, ['superadmin', 'admin', 'hr'])) {
+      items.push({
+        name: 'HR Management',
+        href: '/hr',
+        icon: Users,
+        roles: ['superadmin', 'admin', 'hr']
+      });
+    }
+
+    // User Management - only for superadmin and admin (HR can also manage users)
+    if (hasRole(user, ['superadmin', 'admin', 'hr'])) {
       items.push({
         name: 'User Management',
         href: '/users',
-        icon: Users,
-        roles: ['superadmin', 'admin']
+        icon: User,
+        roles: ['superadmin', 'admin', 'hr']
       });
     }
 
@@ -59,7 +69,7 @@ const Layout = ({ children }) => {
       name: 'Analytics',
       href: '/analytics',
       icon: BarChart3,
-      roles: ['superadmin', 'admin', 'user']
+      roles: ['superadmin', 'admin', 'hr', 'user']
     });
 
     return items.filter(item => 
@@ -96,9 +106,9 @@ const Layout = ({ children }) => {
               <Menu className="h-5 w-5" />
             </Button>
             <h1 className="text-xl font-bold text-white">
-              Auth System
+              GC Management
             </h1>
-            <span className="ml-2 text-sm text-purple-200">Admin Dashboard</span>
+            <span className="ml-2 text-sm text-purple-200">./</span>
           </div>
 
           <div className="flex items-center space-x-4">

@@ -7,7 +7,7 @@
 # Test from terminal first
 curl -H "Authorization: Bearer [YOUR_TOKEN]" \
   -H "Content-Type: application/json" \
-  https://web-production-5b6ab.up.railway.app/users/
+  https://sme-management-system-production.up.railway.app/users/
 ```
 
 ### 2. Test Frontend

@@ -1,7 +1,7 @@
 # 🚀 Backend API Requirements for User Management
 
 ## 📋 Overview
-Currently the Railway backend at `https://web-production-5b6ab.up.railway.app` only has basic authentication endpoints. We need to add complete User Management APIs to enable:
+Currently the Railway backend at `https://sme-management-system-production.up.railway.app` only has basic authentication endpoints. We need to add complete User Management APIs to enable:
 
 1. **Profile Management** - Users can edit their own profiles
 2. **User Administration** - Superadmin can manage all users
@@ -186,26 +186,26 @@ admin2:admin2123 (role: admin2 -> should normalize to admin)
 ### API Testing Examples
 ```bash
 # Get JWT token first
-TOKEN=$(curl -s -X POST "https://web-production-5b6ab.up.railway.app/auth/login" \
+TOKEN=$(curl -s -X POST "https://sme-management-system-production.up.railway.app/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"username":"superadmin","password":"superadmin123"}' | \
   jq -r '.access_token')
 
 # Test get all users
 curl -H "Authorization: Bearer $TOKEN" \
-  "https://web-production-5b6ab.up.railway.app/users"
+  "https://sme-management-system-production.up.railway.app/users"
 
 # Test create user
 curl -X POST -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"username":"newuser","email":"new@example.com","password":"password123","role":"user"}' \
-  "https://web-production-5b6ab.up.railway.app/users"
+  "https://sme-management-system-production.up.railway.app/users"
 
 # Test update profile
 curl -X PUT -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"username":"updated_name","email":"updated@example.com"}' \
-  "https://web-production-5b6ab.up.railway.app/users/me"
+  "https://sme-management-system-production.up.railway.app/users/me"
 ```
 
 ## 🚦 Error Handling
@@ -284,7 +284,7 @@ The frontend is already configured to handle these response formats:
 
 ## 🚀 Deployment Notes
 
-- Current Railway URL: `https://web-production-5b6ab.up.railway.app`
+- Current Railway URL: `https://sme-management-system-production.up.railway.app`
 - Database: PostgreSQL (already connected)
 - Authentication: JWT tokens (already working)
 - Frontend Port: `localhost:5174` (CORS already configured)

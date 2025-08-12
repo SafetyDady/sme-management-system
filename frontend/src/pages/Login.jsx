@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useAuth } from '../hooks/useAuth.jsx';
+import { getRedirectPath } from '../lib/auth';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -36,23 +37,31 @@ const Login = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
-      const redirectPath = user.role === 'user' ? '/profile' : '/dashboard';
+      console.log('🔄 User already authenticated, redirecting...', user);
+      const redirectPath = getRedirectPath(user.role);
       navigate(redirectPath, { replace: true });
     }
   }, [isAuthenticated, user, navigate]);
 
   const onSubmit = async (data) => {
     try {
+      console.log('🚀 Login form submitted:', data.username);
       const result = await login(data);
       
       if (result.success) {
+        console.log('✅ Login successful, user:', result.user);
         toast.success('Login successful!');
-        // Navigation will be handled by useAuth hook
+        
+        // Navigate immediately after successful login
+        const redirectPath = getRedirectPath(result.user.role);
+        console.log('🎯 Navigating to:', redirectPath);
+        navigate(redirectPath, { replace: true });
       } else {
+        console.error('❌ Login failed:', result.error);
         toast.error(result.error || 'Login failed');
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('💥 Login error:', error);
       toast.error('An unexpected error occurred');
     }
   };

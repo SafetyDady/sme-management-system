@@ -4,14 +4,19 @@ import { toast } from 'react-toastify';
 
 // API Configuration - แก้ปัญหา CORS ใน Railway
 const getApiBaseURL = () => {
-  // Railway Proxy Mode - Use relative URLs to leverage proxy
-  if (window.location.hostname.includes('railway.app') || 
-      process.env.NODE_ENV === 'production') {
-    return '/api'; // Uses Railway proxy at /api/*
+  // Development mode - ใช้ direct connection to backend
+  if (import.meta.env.DEV) {
+    return 'http://localhost:8000'; // Direct connection to backend
   }
   
-  // Development mode
-  return import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  // Production mode - Railway Proxy Mode  
+  // ใช้ empty string เพราะ Railway proxy จะจัดการ /api/* routes
+  if (window.location.hostname.includes('railway.app') || 
+      process.env.NODE_ENV === 'production') {
+    return ''; // Railway proxy handles /api/* routes directly
+  }
+  
+  return import.meta.env.VITE_API_URL || 'http://localhost:8000';
 };
 
 const API_BASE_URL = getApiBaseURL();
@@ -131,6 +136,7 @@ api.interceptors.response.use(
 export const authAPI = {
   login: async (credentials) => {
     try {
+      // แก้ไขเป็น /auth/login ให้ตรงกับ backend endpoint
       const response = await api.post('/auth/login', credentials);
       return response.data;
     } catch (error) {
@@ -140,6 +146,7 @@ export const authAPI = {
 
   getCurrentUser: async () => {
     try {
+      // แก้ไขเป็น /auth/me ให้ตรงกับ backend endpoint  
       const response = await api.get('/auth/me');
       return response.data;
     } catch (error) {
@@ -232,7 +239,7 @@ export const userAPI = {
   getUsers: async () => {
     console.log('🔍 Calling userAPI.getUsers()...');
     try {
-      const response = await api.get('/users/');  // เพิ่ม trailing slash
+      const response = await api.get('/api/users/');
       console.log('✅ Users API Success:', response.data);
       return response.data;
     } catch (error) {
@@ -248,19 +255,20 @@ export const userAPI = {
 
   createUser: async (userData) => {
     console.log('🔍 Creating user with data:', userData);
+    
+    // Ensure required fields are present - ย้ายออกมานอก try block
+    const cleanUserData = {
+      username: userData.username?.trim(),
+      email: userData.email?.trim()?.toLowerCase(),
+      password: userData.password,
+      role: userData.role || 'user',
+      is_active: userData.is_active !== undefined ? userData.is_active : true
+    };
+    
+    console.log('🔍 Clean user data:', cleanUserData);
+    
     try {
-      // Ensure required fields are present
-      const cleanUserData = {
-        username: userData.username?.trim(),
-        email: userData.email?.trim()?.toLowerCase(),
-        password: userData.password,
-        role: userData.role || 'user',
-        is_active: userData.is_active !== undefined ? userData.is_active : true
-      };
-      
-      console.log('🔍 Clean user data:', cleanUserData);
-      
-      const response = await api.post('/users/', cleanUserData);
+      const response = await api.post('/api/users/', cleanUserData);
       console.log('✅ Create user success:', response.data);
       return response.data;
     } catch (error) {
@@ -274,7 +282,7 @@ export const userAPI = {
   updateUser: async (userId, userData) => {
     console.log('🔍 Updating user:', userId, userData);
     try {
-      const response = await api.put(`/users/${userId}`, userData);
+      const response = await api.put(`/api/users/${userId}`, userData);
       console.log('✅ Update user success:', response.data);
       return response.data;
     } catch (error) {
@@ -286,7 +294,7 @@ export const userAPI = {
   deleteUser: async (userId) => {
     console.log('🔍 Deleting user:', userId);
     try {
-      const response = await api.delete(`/users/${userId}`);
+      const response = await api.delete(`/api/users/${userId}`);
       console.log('✅ Delete user success:', response.data);
       return response.data;
     } catch (error) {
@@ -298,7 +306,7 @@ export const userAPI = {
   toggleUserStatus: async (userId, isActive) => {
     console.log('🔍 Toggling user status:', userId, isActive);
     try {
-      const response = await api.patch(`/users/${userId}/status`, { is_active: isActive });
+      const response = await api.patch(`/api/users/${userId}/status`, { is_active: isActive });
       console.log('✅ Toggle status success:', response.data);
       return response.data;
     } catch (error) {
@@ -310,7 +318,7 @@ export const userAPI = {
   getUserProfile: async () => {
     console.log('🔍 Getting current user profile...');
     try {
-      const response = await api.get('/users/me');
+      const response = await api.get('/api/users/me');
       console.log('✅ Get profile success:', response.data);
       return response.data;
     } catch (error) {
@@ -322,7 +330,7 @@ export const userAPI = {
   updateProfile: async (userData) => {
     console.log('🔍 Updating profile:', userData);
     try {
-      const response = await api.put('/users/me', userData);
+      const response = await api.put('/api/users/me', userData);
       console.log('✅ Update profile success:', response.data);
       return response.data;
     } catch (error) {
@@ -334,7 +342,7 @@ export const userAPI = {
   changePassword: async (passwordData) => {
     console.log('🔍 Changing password...');
     try {
-      const response = await api.post('/users/me/change-password', passwordData);
+      const response = await api.post('/api/users/me/change-password', passwordData);
       console.log('✅ Change password success:', response.data);
       return response.data;
     } catch (error) {

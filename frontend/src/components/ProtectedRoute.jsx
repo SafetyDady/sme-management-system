@@ -31,10 +31,10 @@ const ProtectedRoute = ({ children, requiredRole = null, redirectTo = '/login' }
     console.log('🔐 Checking role access:', {
       requiredRole,
       userRole: user?.role,
-      hasPermission: hasRole(requiredRole)
+      hasPermission: hasRole(user, [requiredRole])
     });
     
-    if (!hasRole(requiredRole)) {
+    if (!hasRole(user, [requiredRole])) {
       if (!hasShownError) {
         console.log('❌ Access denied for role:', user?.role, 'Required:', requiredRole);
         toast.error('Access denied. You do not have permission to view this page.');

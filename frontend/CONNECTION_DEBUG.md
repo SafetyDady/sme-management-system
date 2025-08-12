@@ -37,9 +37,9 @@ Look for:
 
 #### 4. Test Direct API
 Current working endpoints:
-- `https://web-production-5b6ab.up.railway.app/health` ✅
-- `https://web-production-5b6ab.up.railway.app/auth/login` ✅
-- `https://web-production-5b6ab.up.railway.app/dashboard` ✅
+- `https://sme-management-system-production.up.railway.app/health` ✅
+- `https://sme-management-system-production.up.railway.app/auth/login` ✅
+- `https://sme-management-system-production.up.railway.app/dashboard` ✅
 
 ### Quick Fix Steps:
 

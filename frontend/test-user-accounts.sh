@@ -4,7 +4,7 @@ echo "👥 User Accounts Testing - Railway Backend"
 echo "=========================================="
 echo
 
-RAILWAY_URL="https://web-production-5b6ab.up.railway.app"
+RAILWAY_URL="https://sme-management-system-production.up.railway.app"
 
 # Test user accounts
 declare -a users=(

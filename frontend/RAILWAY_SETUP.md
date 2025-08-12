@@ -2,7 +2,7 @@
 # Copy these settings to your Railway service
 
 [Environment Variables]
-VITE_API_URL=https://web-production-5b6ab.up.railway.app
+VITE_API_URL=https://sme-management-system-production.up.railway.app
 VITE_ENV=production
 NODE_VERSION=20
 PORT=3000

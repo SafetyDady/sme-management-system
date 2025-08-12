@@ -7,6 +7,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from .database import get_db
 from .models import User
+from .safe_db import SafeUser, safe_get_user_by_username, check_table_schema
+from .permissions import normalize_role, get_role_permissions
 from dotenv import load_dotenv
 import os
 
@@ -73,6 +75,10 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
     to_encode.update({"exp": expire})
+    
+    # Normalize role in JWT payload
+    if "role" in to_encode:
+        to_encode["role"] = normalize_role(to_encode["role"])
     
     # Enhanced SECRET_KEY preparation with multiple fallbacks
     key_to_use = SECRET_KEY
@@ -147,17 +153,29 @@ def verify_token(token: str):
         )
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
-    from .models import User
-    
     token = credentials.credentials
     username = verify_token(token)
     
-    user = db.query(User).filter(User.username == username).first()
+    # Try safe user model first (for backward compatibility)
+    user = safe_get_user_by_username(db, username)
+    
+    if user is None:
+        # Fallback to regular User model if safe query fails
+        try:
+            from .models import User
+            user = db.query(User).filter(User.username == username).first()
+        except Exception as e:
+            logger.error(f"User query failed: {e}")
+            user = None
+    
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+    # Normalize user role
+    user.role = normalize_role(user.role)
     return user
 

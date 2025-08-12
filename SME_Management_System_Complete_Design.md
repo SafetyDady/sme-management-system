@@ -1,4 +1,6 @@
 # SME Management System - Complete Project Design
+> ARCHIVE / LEGACY VISION DOCUMENT
+> Not the active scope. See `docs/CANONICAL_SYSTEM_OVERVIEW.md` for live plan & status.
 *Version: 1.0 - Comprehensive Design Document*
 *Date: August 8, 2025*
 *Based on: Authentication Template + SME Pre-Design Analysis*

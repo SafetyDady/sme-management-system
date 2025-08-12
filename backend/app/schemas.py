@@ -1,10 +1,11 @@
 """
 Enhanced Pydantic schemas with comprehensive validation
 """
-from pydantic import BaseModel, EmailStr, validator, Field
+from pydantic import BaseModel, validator, Field
 from typing import Optional, Dict, Any
 from datetime import datetime
 import re
+from email_validator import validate_email, EmailNotValidError
 
 class UserLogin(BaseModel):
     username: str = Field(..., min_length=3, max_length=50, description="Username for authentication")
@@ -53,9 +54,9 @@ class UserLogin(BaseModel):
 
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
-    email: EmailStr = Field(..., description="Valid email address")
+    email: str = Field(..., description="Valid email address")
     password: str = Field(..., min_length=8, max_length=128)
-    role: str = Field(default="user", pattern="^(user|admin1|admin2|superadmin)$")
+    role: str = Field(default="user", pattern="^(user|admin|admin1|admin2|superadmin|hr|manager)$")
     
     @validator('username')
     def validate_username(cls, v):
@@ -109,6 +110,13 @@ class UserCreate(BaseModel):
         if len(v) > 254:  # RFC 5321 limit
             raise ValueError('Email address is too long')
         
+        # Custom email validation that allows .local domains for development
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        local_email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.local$'
+        
+        if not (re.match(email_pattern, v) or re.match(local_email_pattern, v)):
+            raise ValueError('Invalid email address format')
+        
         return v.lower()
 
 class User(BaseModel):
@@ -118,6 +126,13 @@ class User(BaseModel):
     role: str
     is_active: bool
     created_at: datetime
+    # Exposed employee profile (may be null)
+    employee_code: Optional[str] = None
+    department: Optional[str] = None
+    position: Optional[str] = None
+    hire_date: Optional[datetime] = None  # kept simple; frontend can format
+    phone: Optional[str] = None
+    address: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -132,15 +147,54 @@ class TokenData(BaseModel):
     username: Optional[str] = None
 
 class UserUpdate(BaseModel):
-    email: Optional[EmailStr] = None
-    role: Optional[str] = Field(None, pattern="^(user|admin1|admin2|superadmin)$")
+    username: Optional[str] = Field(None, min_length=3, max_length=50)
+    email: Optional[str] = None
+    password: Optional[str] = Field(None, min_length=6, max_length=128)
+    role: Optional[str] = Field(None, pattern="^(user|admin|admin1|admin2|superadmin|hr|manager)$")
     is_active: Optional[bool] = None
+    # Employee fields (all optional)
+    employee_code: Optional[str] = Field(None, max_length=30)
+    department: Optional[str] = Field(None, max_length=100)
+    position: Optional[str] = Field(None, max_length=100)
+    hire_date: Optional[datetime] = None
+    phone: Optional[str] = Field(None, max_length=30)
+    address: Optional[str] = Field(None, max_length=500)
+    
+    @validator('username')
+    def validate_username(cls, v):
+        if v:
+            v = v.strip()
+            if len(v) < 3:
+                raise ValueError('Username must be at least 3 characters long')
+            if len(v) > 50:
+                raise ValueError('Username must be less than 50 characters')
+            if not v.replace('_', '').replace('-', '').isalnum():
+                raise ValueError('Username can only contain letters, numbers, underscores, and hyphens')
+        return v
     
     @validator('email')
     def validate_email(cls, v):
-        if v and len(v) > 254:
-            raise ValueError('Email address is too long')
+        if v:
+            if len(v) > 254:
+                raise ValueError('Email address is too long')
+            
+            # Custom email validation that allows .local domains
+            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            local_email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.local$'
+            
+            if not (re.match(email_pattern, v) or re.match(local_email_pattern, v)):
+                raise ValueError('Invalid email address format')
+        
         return v.lower() if v else v
+    
+    @validator('password')
+    def validate_password(cls, v):
+        if v:
+            if len(v) < 6:
+                raise ValueError('Password must be at least 6 characters long')
+            if len(v) > 128:
+                raise ValueError('Password must be less than 128 characters')
+        return v
 
 class PasswordChange(BaseModel):
     current_password: str = Field(..., min_length=1, max_length=128)
@@ -186,7 +240,7 @@ class SuccessResponse(BaseModel):
 
 # Forgot Password Schemas
 class ForgotPasswordRequest(BaseModel):
-    email: EmailStr = Field(..., description="Email address to send reset link")
+    email: str = Field(..., description="Email address to send reset link")
     
     @validator('email')
     def validate_email(cls, v):
@@ -232,4 +286,62 @@ class ResetPasswordRequest(BaseModel):
 
 class ResetPasswordResponse(BaseModel):
     message: str
+
+# Slim public employee subset (for future /employees endpoints)
+class EmployeePublic(BaseModel):
+    id: str
+    username: str
+    role: str
+    employee_code: Optional[str] = None
+    department: Optional[str] = None
+    position: Optional[str] = None
+    hire_date: Optional[datetime] = None
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+# HR Employee Schemas (lean phase)
+class EmployeeCreate(BaseModel):
+    emp_code: str = Field(..., min_length=2, max_length=20)
+    first_name: str = Field(..., min_length=1, max_length=50)
+    last_name: str = Field(..., min_length=1, max_length=50)
+    position: Optional[str] = Field(None, max_length=100)
+    department: Optional[str] = Field(None, max_length=100)
+    start_date: Optional[datetime] = None
+    employment_type: Optional[str] = Field(None, max_length=30)
+    salary_base: Optional[float] = None
+    contact_phone: Optional[str] = Field(None, max_length=20)
+    user_id: Optional[str] = Field(None, description="Link to existing user (optional)")
+
+    @validator('emp_code')
+    def validate_code(cls, v):
+        if not v.replace('-', '').isalnum():
+            raise ValueError('emp_code must be alphanumeric (dashes allowed)')
+        return v.upper()
+
+class EmployeeUpdate(BaseModel):
+    position: Optional[str] = Field(None, max_length=100)
+    department: Optional[str] = Field(None, max_length=100)
+    employment_type: Optional[str] = Field(None, max_length=30)
+    salary_base: Optional[float] = None
+    contact_phone: Optional[str] = Field(None, max_length=20)
+    active_status: Optional[bool] = None
+
+class EmployeeRecord(BaseModel):
+    employee_id: int
+    emp_code: str
+    first_name: str
+    last_name: str
+    position: Optional[str]
+    department: Optional[str]
+    start_date: Optional[datetime]
+    employment_type: Optional[str]
+    salary_base: Optional[float]
+    contact_phone: Optional[str]
+    active_status: bool
+    user_id: Optional[str]
+
+    class Config:
+        from_attributes = True
 
