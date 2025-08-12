@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { userAPI } from '../lib/api.js';
+import { normalizeRole } from '../lib/permissions.js';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -50,7 +51,9 @@ const UserManagement = () => {
         console.log('🔍 User role:', user?.role);
         
         // Check if user has permission
-        if (!user || !['superadmin', 'admin', 'admin1', 'admin2'].includes(user.role)) {
+        // Check if user has permission to access user management
+        const normalizedRole = normalizeRole(user.role);
+        if (!user || !['superadmin', 'admin'].includes(normalizedRole)) {
           console.warn('⚠️ User does not have permission to view users');
           toast.error('You do not have permission to view users');
           setUsers([]);
@@ -114,12 +117,11 @@ const UserManagement = () => {
   }, [user]);
 
   const getRoleIcon = (role) => {
-    switch (role) {
+    const normalizedRole = normalizeRole(role);
+    switch (normalizedRole) {
       case 'superadmin':
         return <Crown className="h-4 w-4" />;
       case 'admin':
-      case 'admin1':
-      case 'admin2':
         return <Shield className="h-4 w-4" />;
       default:
         return <Users className="h-4 w-4" />;
@@ -127,12 +129,11 @@ const UserManagement = () => {
   };
 
   const getRoleBadgeColor = (role) => {
-    switch (role) {
+    const normalizedRole = normalizeRole(role);
+    switch (normalizedRole) {
       case 'superadmin':
         return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'admin':
-      case 'admin1':
-      case 'admin2':
         return 'bg-blue-100 text-blue-800 border-blue-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';

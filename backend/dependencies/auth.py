@@ -33,8 +33,8 @@ require_employee_manage = require_permission("employee.edit")
 require_user_manage = require_permission("user.edit") 
 require_hr_access = require_permission("hr.leave.view")
 
-# Role shortcuts (legacy support)
+# Role shortcuts (canonical roles only)
 require_admin_or_superadmin = require_roles(["admin", "superadmin"])
-require_hr_or_admin = require_roles(["hr", "admin", "superadmin"])
 require_superadmin = require_roles(["superadmin"])
+require_hr_or_above = require_roles(["hr", "admin", "superadmin"])
 

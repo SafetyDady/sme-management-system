@@ -277,6 +277,50 @@ async def delete_user(
             detail=f"Failed to delete user: {str(e)}"
         )
 
+@router.post("/{user_id}/password")
+async def change_user_password(
+    user_id: str,
+    password_data: PasswordChange,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_admin_or_superadmin)
+):
+    """Change user password (Admin/SuperAdmin only)"""
+    try:
+        # Check if user exists
+        existing_user = safe_get_user_by_id(db, user_id)
+        
+        if not existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        # Hash new password
+        hashed_password = pwd_context.hash(password_data.new_password)
+        
+        # Update password using safe function
+        success = safe_update_user(db, user_id, {"hashed_password": hashed_password})
+        
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update password"
+            )
+        
+        return {
+            "message": "Password changed successfully",
+            "user_id": user_id,
+            "username": existing_user.username
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to change password: {str(e)}"
+        )
+
 @router.get("/debug/schema")
 async def debug_schema(
     db: Session = Depends(get_db),

@@ -2,7 +2,7 @@
 Enhanced Pydantic schemas with comprehensive validation
 """
 from pydantic import BaseModel, validator, Field
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Literal
 from datetime import datetime
 import re
 from email_validator import validate_email, EmailNotValidError
@@ -56,7 +56,7 @@ class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     email: str = Field(..., description="Valid email address")
     password: str = Field(..., min_length=8, max_length=128)
-    role: str = Field(default="user", pattern="^(user|admin|admin1|admin2|superadmin|hr|manager)$")
+    role: Literal["user", "admin", "superadmin", "hr"] = Field(default="user", description="User role")
     
     @validator('username')
     def validate_username(cls, v):
@@ -150,7 +150,7 @@ class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50)
     email: Optional[str] = None
     password: Optional[str] = Field(None, min_length=6, max_length=128)
-    role: Optional[str] = Field(None, pattern="^(user|admin|admin1|admin2|superadmin|hr|manager)$")
+    role: Optional[Literal["user", "admin", "superadmin", "hr"]] = Field(None, description="User role")
     is_active: Optional[bool] = None
     # Employee fields (all optional)
     employee_code: Optional[str] = Field(None, max_length=30)

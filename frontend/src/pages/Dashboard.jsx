@@ -2,6 +2,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { systemAPI } from '../lib/api.js';
+import { normalizeRole } from '../lib/permissions.js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card.jsx';
 import { Button } from '../components/ui/button.jsx';
 import { 
@@ -53,14 +54,13 @@ const Dashboard = () => {
   // Different dashboard content based on user role
   const getDashboardContent = () => {
     const userRole = user?.role;
-    console.log('🎨 Rendering dashboard for role:', userRole);
+    const normalizedRole = normalizeRole(userRole);
+    console.log('🎨 Rendering dashboard for role:', userRole, '→', normalizedRole);
     
-    switch(userRole) {
+    switch(normalizedRole) {
       case 'superadmin':
         return renderSuperAdminDashboard();
       case 'admin':
-      case 'admin1':
-      case 'admin2':
         return renderAdminDashboard();
       case 'hr':
         return renderHRDashboard();
