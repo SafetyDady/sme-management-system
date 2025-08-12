@@ -691,6 +691,77 @@ async def create_admin_emergency(db: Session = Depends(get_db)):
         logger.error(f"Admin creation failed: {e}")
         return {"status": "error", "error": str(e)}
 
+# Debug users endpoint
+@app.get("/debug/users", include_in_schema=False)
+async def debug_users(db: Session = Depends(get_db)):
+    """Debug endpoint to list users (without sensitive data)"""
+    try:
+        from sqlalchemy import text
+        
+        result = db.execute(
+            text("SELECT username, email, role, is_active, created_at FROM users")
+        ).fetchall()
+        
+        users = []
+        for row in result:
+            users.append({
+                "username": row.username,
+                "email": row.email,
+                "role": row.role,
+                "is_active": row.is_active,
+                "created_at": str(row.created_at)
+            })
+        
+        return {
+            "status": "success",
+            "users": users,
+            "count": len(users),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Users debug failed: {e}")
+        return {"status": "error", "error": str(e)}
+
+# Reset admin password endpoint
+@app.post("/debug/reset-admin", include_in_schema=False)
+async def reset_admin_password(db: Session = Depends(get_db)):
+    """Reset admin password to default"""
+    try:
+        from app.auth import get_password_hash
+        from sqlalchemy import text
+        
+        # Reset admin password
+        new_password = "admin123"
+        hashed_password = get_password_hash(new_password)
+        
+        result = db.execute(
+            text("""
+            UPDATE users 
+            SET hashed_password = :hashed_password
+            WHERE username = 'admin'
+            """),
+            {"hashed_password": hashed_password}
+        )
+        db.commit()
+        
+        if result.rowcount > 0:
+            return {
+                "status": "success",
+                "message": "Admin password reset successfully",
+                "username": "admin",
+                "password": new_password
+            }
+        else:
+            return {
+                "status": "not_found",
+                "message": "Admin user not found"
+            }
+        
+    except Exception as e:
+        logger.error(f"Password reset failed: {e}")
+        return {"status": "error", "error": str(e)}
+
 # Include routers
 app.include_router(users.router, prefix="/api/users")
 app.include_router(auth.router)
