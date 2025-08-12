@@ -32,7 +32,7 @@ from app.security import (
 )
 
 # Import new routers
-from routers import users, auth, employees, hr_management
+from routers import users, auth, employees
 from app.logging_config import (
     setup_logging, 
     get_logger, 
@@ -77,25 +77,6 @@ async def lifespan(app: FastAPI):
                 logger.info("✅ Created default admin user: admin / admin123")
             else:
                 logger.info("✅ Admin user already exists")
-                
-            # Check if HR user exists
-            hr_user = db.query(User).filter(User.username == "hr_manager").first()
-            if not hr_user:
-                # Create default HR user
-                hashed_password = get_password_hash("hrpass123")
-                hr_user = User(
-                    username="hr_manager",
-                    email="hr@sme.local",
-                    hashed_password=hashed_password,
-                    role="hr",
-                    is_active=True,
-                    created_at=datetime.utcnow()
-                )
-                db.add(hr_user)
-                db.commit()
-                logger.info("✅ Created default HR user: hr_manager / hrpass123")
-            else:
-                logger.info("✅ HR user already exists")
         finally:
             db.close()
     except Exception as e:
@@ -610,38 +591,6 @@ async def init_admin_user():
     except Exception as e:
         return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
 
-@app.post("/admin/reset-admin-password")
-async def reset_admin_password():
-    """Reset admin password to admin123 (for production fix)"""
-    try:
-        from app.database import SessionLocal
-        from app.auth import get_password_hash
-        
-        db = SessionLocal()
-        try:
-            # Find admin user
-            admin_user = db.query(User).filter(User.username == "admin").first()
-            if not admin_user:
-                return {"error": "Admin user not found"}
-            
-            # Update password to admin123
-            new_hashed_password = get_password_hash("admin123")
-            admin_user.hashed_password = new_hashed_password
-            db.commit()
-            
-            return {
-                "message": "✅ Admin password reset successfully", 
-                "username": "admin",
-                "new_password": "admin123",
-                "email": admin_user.email,
-                "old_hash": "$2b$12$zk34brbiP.iZOiycVrT3h.2SI9mUV4mc5SdyHJ6muGri0OBwy.cWS"[:20] + "...",
-                "new_hash": new_hashed_password[:20] + "..."
-            }
-        finally:
-            db.close()
-    except Exception as e:
-        return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
-
 # Development/debugging endpoints (only in development)
 if os.getenv('ENVIRONMENT', 'development') == 'development':
     @app.get("/debug/info")
@@ -661,7 +610,6 @@ if os.getenv('ENVIRONMENT', 'development') == 'development':
 app.include_router(users.router, prefix="/api/users")
 app.include_router(auth.router)
 app.include_router(employees.router, prefix="/api")
-app.include_router(hr_management.router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn
