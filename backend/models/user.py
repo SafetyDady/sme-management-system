@@ -4,15 +4,16 @@ from datetime import datetime
 
 class UserBase(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
-    email: EmailStr
+    email: str  # Changed from EmailStr to str for backward compatibility
     role: str = Field(..., pattern="^(user|admin|admin1|admin2|superadmin|hr|manager)$")
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8)
+    email: EmailStr  # Keep EmailStr for input validation
 
 class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50)
-    email: Optional[EmailStr] = None
+    email: Optional[EmailStr] = None  # Keep EmailStr for input validation
     role: Optional[str] = Field(None, pattern="^(user|admin|admin1|admin2|superadmin|hr|manager)$")
 
 class UserResponse(UserBase):
@@ -20,6 +21,13 @@ class UserResponse(UserBase):
     is_active: bool
     created_at: datetime
     last_login: Optional[datetime] = None
+    # Add employee fields for compatibility
+    employee_code: Optional[str] = None
+    department: Optional[str] = None  
+    position: Optional[str] = None
+    hire_date: Optional[datetime] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
 
     class Config:
         from_attributes = True
