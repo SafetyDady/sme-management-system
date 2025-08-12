@@ -379,7 +379,7 @@ export const connectionCheck = {
 
   // Switch to Railway if local server is down
   switchToRailway: () => {
-    const railwayURL = import.meta.env.VITE_RAILWAY_API_URL || 'https://sme-management-system-production.up.railway.app';
+    const railwayURL = import.meta.env.VITE_RAILWAY_API_URL || 'https://web-production-5b6ab.up.railway.app';
     api.defaults.baseURL = railwayURL;
     console.log('Switched to Railway backend:', railwayURL);
     toast.info('Switched to Railway backend server');
