@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from .models import User
-from .safe_db import safe_get_user_by_username
 from .auth import verify_password, get_password_hash
 from .schemas import UserCreate
 
@@ -25,8 +24,7 @@ def create_user(db: Session, user: UserCreate):
 
 def authenticate_user(db: Session, username: str, password: str):
     try:
-        # Use safe query method to avoid column issues
-        user = safe_get_user_by_username(db, username)
+        user = get_user_by_username(db, username)
         if not user:
             return False
         if not verify_password(password, user.hashed_password):
