@@ -42,7 +42,8 @@ async def get_users(
         
         # Convert to response format
         users = [user_response(row) for row in result]
-        return {"users": users, "count": len(users)}
+        # Return array directly (not wrapped in object) for frontend compatibility
+        return users
         
     except Exception as e:
         raise HTTPException(
@@ -106,16 +107,13 @@ async def create_user(
         )
         db.commit()
         
-        # Return created user
+        # Return created user data directly for frontend compatibility
         new_user = db.execute(
             text("SELECT id, username, email, role, is_active, created_at, last_login FROM users WHERE id = :id"),
             {"id": user_id}
         ).fetchone()
         
-        return {
-            "message": "User created successfully",
-            "user": user_response(new_user)
-        }
+        return user_response(new_user)
         
     except Exception as e:
         db.rollback()
