@@ -74,10 +74,12 @@ async def create_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin can only create users with 'user' role"
         )
-    # Check if username or email already exists
-    existing_user = db.query(User).filter(
-        (User.username == user_data.username) | (User.email == user_data.email)
-    ).first()
+    # Check if username or email already exists using safe query
+    from sqlalchemy import text
+    existing_user = db.execute(
+        text("SELECT username, email FROM users WHERE username = :username OR email = :email LIMIT 1"),
+        {"username": user_data.username, "email": user_data.email}
+    ).fetchone()
     
     if existing_user:
         if existing_user.username == user_data.username:
@@ -133,16 +135,30 @@ async def update_current_user_profile(
     current_user = Depends(get_current_user)
 ):
     """Update current user profile"""
-    # Check if username/email is already taken by another user
+    # Check if username/email is already taken by another user using safe query
     if user_data.username or user_data.email:
-        query = db.query(User).filter(User.id != current_user.id)
-        if user_data.username:
-            query = query.filter(User.username == user_data.username)
-        if user_data.email:
-            query = query.filter(User.email == user_data.email)
+        conditions = []
+        params = {"current_user_id": current_user.id}
         
-        existing_user = query.first()
-        if existing_user:
+        if user_data.username:
+            conditions.append("username = :username")
+            params["username"] = user_data.username
+        if user_data.email:
+            conditions.append("email = :email") 
+            params["email"] = user_data.email
+            
+        if conditions:
+            query = f"SELECT id FROM users WHERE id != :current_user_id AND ({' OR '.join(conditions)}) LIMIT 1"
+            existing_user = db.execute(text(query), params).fetchone()
+            if existing_user:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Username or email already exists"
+                )
+    
+    # Update user data using safe method
+    success = safe_update_user(db, current_user.id, user_data.dict(exclude_unset=True))
+    if not success:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Username or email already taken"
@@ -183,7 +199,8 @@ async def get_user_by_id(
             detail="Not authorized to view this user"
         )
     
-    user = db.query(User).filter(User.id == user_id).first()
+    # Use safe query to get user by ID
+    user = safe_get_user_by_id(db, user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
