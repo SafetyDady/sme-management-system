@@ -3,12 +3,14 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
 from app.models import User
+from app.safe_db import safe_get_user_by_username
 from app.schemas import UserCreate, UserUpdate, PasswordChange
 from models.user import UserResponse, UserStatusUpdate
 from app.auth import get_current_user
 from dependencies.auth import require_admin_or_superadmin, require_superadmin
 from passlib.context import CryptContext
 from datetime import datetime
+from sqlalchemy import text
 
 router = APIRouter(tags=["users"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -20,7 +22,32 @@ async def get_users(
 ):
     """Get all users (Admin/SuperAdmin only)"""
     try:
-        users = db.query(User).all()
+        # Use safe raw SQL query with essential columns only
+        result = db.execute(text("""
+            SELECT id, username, email, role, is_active, created_at, last_login
+            FROM users
+            ORDER BY created_at DESC
+        """)).fetchall()
+        
+        # Convert to dict format for response
+        users = []
+        for row in result:
+            users.append({
+                "id": row.id,
+                "username": row.username,
+                "email": row.email,
+                "role": row.role,
+                "is_active": row.is_active,
+                "created_at": row.created_at,
+                "last_login": row.last_login,
+                "employee_code": None,  # Set to None for backward compatibility
+                "department": None,
+                "position": None,
+                "hire_date": None,
+                "phone": None,
+                "address": None
+            })
+        
         return users
     except Exception as e:
         raise HTTPException(
