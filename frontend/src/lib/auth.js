@@ -1,5 +1,5 @@
 import Cookies from 'js-cookie';
-import { normalizeRole, hasRole as checkRole, can } from './permissions.js';
+import { normalizeRole, hasRole as checkRole, can } from '@/lib/permissions';
 
 // Token management
 export const getToken = () => {
