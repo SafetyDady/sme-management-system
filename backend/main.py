@@ -606,6 +606,27 @@ if os.getenv('ENVIRONMENT', 'development') == 'development':
             }
         }
 
+# Debug endpoint for database schema
+@app.get("/debug/schema", include_in_schema=False)
+async def debug_schema(db: Session = Depends(get_db)):
+    """Debug endpoint to check database schema"""
+    try:
+        from app.safe_db import check_table_schema
+        schema_info = check_table_schema(db)
+        
+        return {
+            "status": "success",
+            "schema": schema_info,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Schema debug failed: {e}")
+        return {
+            "status": "error", 
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
 # Include routers
 app.include_router(users.router, prefix="/api/users")
 app.include_router(auth.router)
