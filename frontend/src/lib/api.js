@@ -4,9 +4,9 @@ import { toast } from 'react-toastify';
 
 // API Configuration - แก้ปัญหา CORS ใน Railway
 const getApiBaseURL = () => {
-  // Development mode - use empty string to work with Vite proxy
+  // Development mode - ใช้ direct connection to backend
   if (import.meta.env.DEV) {
-    return ''; // Let Vite proxy handle /api/* routes
+    return 'http://localhost:8000'; // Direct connection to backend
   }
   
   // Production mode - Railway Proxy Mode  
@@ -16,7 +16,7 @@ const getApiBaseURL = () => {
     return ''; // Railway proxy handles /api/* routes directly
   }
   
-  return import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  return import.meta.env.VITE_API_URL || 'http://localhost:8000';
 };
 
 const API_BASE_URL = getApiBaseURL();

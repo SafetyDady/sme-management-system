@@ -7,7 +7,7 @@
 ## 📋 Pre-deployment Checklist
 
 ### ✅ Current Status:
-- **Backend**: Deployed and working at `https://sme-management-system-production.up.railway.app`
+- **Backend**: Deployed and working at `https://web-production-5b6ab.up.railway.app`
 - **Database**: PostgreSQL on Railway (working)
 - **Frontend**: Local development only (needs deployment)
 
@@ -65,7 +65,7 @@ The current `server.js` looks good, but let's verify the backend URL:
 
 ```javascript
 // Current proxy target in server.js
-target: 'https://sme-management-system-production.up.railway.app'
+target: 'https://web-production-5b6ab.up.railway.app'
 ```
 
 ### Step 3: Railway Configuration
@@ -101,8 +101,8 @@ PORT=3000
 
 #### **2. API Backend URL (if needed for build-time)**
 ```bash
-VITE_API_URL=https://sme-management-system-production.up.railway.app
-VITE_BACKEND_URL=https://sme-management-system-production.up.railway.app
+VITE_API_URL=https://web-production-5b6ab.up.railway.app
+VITE_BACKEND_URL=https://web-production-5b6ab.up.railway.app
 ```
 
 #### **3. Optional Build Variables**
@@ -141,7 +141,7 @@ VITE_APP_VERSION=1.0.0
    ```
    NODE_ENV = production
    PORT = 3000
-   VITE_BACKEND_URL = https://sme-management-system-production.up.railway.app
+   VITE_BACKEND_URL = https://web-production-5b6ab.up.railway.app
    ```
 
 ### Method 2: Railway CLI (Alternative)
@@ -191,7 +191,7 @@ VITE_APP_VERSION=1.0.0
 // In vite.config.js, update proxy target
 proxy: {
   '/api': {
-    target: process.env.VITE_BACKEND_URL || 'https://sme-management-system-production.up.railway.app',
+    target: process.env.VITE_BACKEND_URL || 'https://web-production-5b6ab.up.railway.app',
     changeOrigin: true,
     secure: true,
   }
@@ -214,9 +214,9 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ||
 ## 🔗 Expected URLs After Deployment
 
 ### Backend (Current):
-- **API URL**: `https://sme-management-system-production.up.railway.app`
-- **Health Check**: `https://sme-management-system-production.up.railway.app/health`
-- **Login API**: `https://sme-management-system-production.up.railway.app/api/login`
+- **API URL**: `https://web-production-5b6ab.up.railway.app`
+- **Health Check**: `https://web-production-5b6ab.up.railway.app/health`
+- **Login API**: `https://web-production-5b6ab.up.railway.app/api/login`
 
 ### Frontend (After Deployment):
 - **App URL**: `https://[your-frontend-service].up.railway.app`
@@ -252,12 +252,12 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ||
 ## 🚨 Important Notes
 
 ### **Current Backend API Endpoint:**
-- The backend is at: `https://sme-management-system-production.up.railway.app`
+- The backend is at: `https://web-production-5b6ab.up.railway.app`
 - Frontend will proxy `/api/*` to this URL
 - No changes needed to backend
 
 ### **DNS/URL Structure:**
-- Backend: `sme-management-system-production.up.railway.app`
+- Backend: `web-production-5b6ab.up.railway.app`
 - Frontend: `[new-service-name].up.railway.app` (to be created)
 
 ### **Security Considerations:**

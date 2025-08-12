@@ -1,4 +1,5 @@
 import { useState, useEffect, createContext, useContext } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { authAPI } from '../lib/api';
 import { 
   getToken, 
@@ -70,9 +71,12 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       setIsLoading(true);
-      const response = await authAPI.login(credentials);
+      console.log('🔐 Attempting login with:', credentials.username);
       
+      const response = await authAPI.login(credentials);
       const { access_token, user: userData } = response;
+      
+      console.log('✅ Login successful, user data:', userData);
       
       // Store token and user data
       setToken(access_token);
@@ -80,16 +84,12 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       setIsAuthenticated(true);
       
-      toast.success('Login successful!');
-      
-      // Redirect based on role
-      const redirectPath = getRedirectPath(userData.role);
-      window.location.href = redirectPath;
+      console.log('💾 Auth data stored successfully');
       
       return { success: true, user: userData };
     } catch (error) {
+      console.error('❌ Login error:', error);
       const errorMessage = error.response?.data?.detail || 'Login failed';
-      toast.error(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);

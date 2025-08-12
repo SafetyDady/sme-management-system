@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradient for hexagon -->
+    <linearGradient id="hexGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00ffff;stop-opacity:1" />
+      <stop offset="25%" style="stop-color:#ff00ff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ffff00;stop-opacity:1" />
+      <stop offset="75%" style="stop-color:#ff6600;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6600ff;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Gradient for infinity symbol -->
+    <linearGradient id="infinityGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff00ff;stop-opacity:1" />
+      <stop offset="33%" style="stop-color:#00ffff;stop-opacity:1" />
+      <stop offset="66%" style="stop-color:#ffff00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff6600;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Hexagon with infinity symbol for icon -->
+  <g transform="translate(32, 32)">
+    <!-- Outer hexagon -->
+    <polygon points="-18,-10 -9,-18 9,-18 18,-10 18,10 9,18 -9,18 -18,10" 
+             fill="none" 
+             stroke="url(#hexGradient)" 
+             stroke-width="4"
+             opacity="0.9"/>
+    
+    <!-- Inner hexagon for depth -->
+    <polygon points="-12,-7 -6,-12 6,-12 12,-7 12,7 6,12 -6,12 -12,7" 
+             fill="none" 
+             stroke="url(#hexGradient)" 
+             stroke-width="2.5"
+             opacity="0.6"/>
+    
+    <!-- Infinity symbol in the center -->
+    <g transform="scale(0.5)">
+      <path d="M -12,0 
+               C -12,-6 -6,-9 -3,-6 
+               C 0,-3 0,3 -3,6 
+               C -6,9 -12,6 -12,0 
+               C -12,-6 -6,-9 -3,-6 
+               C 0,-3 0,3 3,6 
+               C 6,9 12,6 12,0 
+               C 12,-6 6,-9 3,-6 
+               C 0,-3 0,3 -3,6 
+               C -6,9 -12,6 -12,0 Z" 
+            fill="none" 
+            stroke="url(#infinityGradient)" 
+            stroke-width="3"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            opacity="0.9"/>
+    </g>
+  </g>
+</svg>
+

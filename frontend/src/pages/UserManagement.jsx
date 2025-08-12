@@ -569,11 +569,14 @@ const UserManagement = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="user">User</SelectItem>
-                    {user?.role === 'superadmin' && (
+                    {(user?.role === 'superadmin' || user?.role === 'admin') && (
                       <>
+                        <SelectItem value="hr">HR</SelectItem>
                         <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="superadmin">SuperAdmin</SelectItem>
                       </>
+                    )}
+                    {user?.role === 'superadmin' && (
+                      <SelectItem value="superadmin">SuperAdmin</SelectItem>
                     )}
                   </SelectContent>
                 </Select>

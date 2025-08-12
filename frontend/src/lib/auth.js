@@ -1,4 +1,5 @@
 import Cookies from 'js-cookie';
+import { normalizeRole, hasRole as checkRole, can } from './permissions';
 
 // Token management
 export const getToken = () => {
@@ -17,10 +18,21 @@ export const removeToken = () => {
 // User data management
 export const getUserData = () => {
   const userData = Cookies.get('user_data');
-  return userData ? JSON.parse(userData) : null;
+  if (!userData) return null;
+  
+  const user = JSON.parse(userData);
+  // Always normalize role when retrieving user data
+  if (user.role) {
+    user.role = normalizeRole(user.role);
+  }
+  return user;
 };
 
 export const setUserData = (userData) => {
+  // Normalize role before storing
+  if (userData.role) {
+    userData.role = normalizeRole(userData.role);
+  }
   Cookies.set('user_data', JSON.stringify(userData), { expires: 1/24 });
 };
 
@@ -35,77 +47,34 @@ export const isAuthenticated = () => {
   return !!(token && userData);
 };
 
-export const hasRole = (requiredRole) => {
-  const userData = getUserData();
-  if (!userData) {
-    console.log('🔍 hasRole: No user data found');
-    return false;
+// Unified permission checking
+export const hasPermission = (permission) => {
+  const user = getUserData();
+  return user ? can(user.role, permission) : false;
+};
+
+// Role checking (legacy support + new unified approach)
+export const hasRole = (userData, requiredRoles) => {
+  // Handle new usage: hasRole(user, roles) 
+  if (userData && typeof userData === 'object' && userData.role) {
+    return checkRole(userData, requiredRoles);
   }
   
-  let userRole = userData.role;
-  console.log('🔍 hasRole check:', { userRole, requiredRole, userData });
-  
-  // Fix for backend that returns username as role (admin1 -> admin)
-  if (userRole === 'admin1' || userRole === 'admin2') {
-    userRole = 'admin';
-    console.log('🔄 Normalized role from', userData.role, 'to', userRole);
-  }
-  
-  // Role hierarchy: superadmin > admin > hr > user
-  const roleHierarchy = {
-    'superadmin': 4,
-    'admin': 3,
-    'hr': 2,
-    'user': 1
-  };
-  
-  const userLevel = roleHierarchy[userRole] || 0;
-  const requiredLevel = roleHierarchy[requiredRole] || 0;
-  
-  const hasAccess = userLevel >= requiredLevel;
-  console.log('🔍 Role check result:', { 
-    originalRole: userData.role,
-    normalizedRole: userRole,
-    userLevel, 
-    requiredLevel, 
-    hasAccess
-  });
-  
-  return hasAccess;
+  // Handle legacy usage: hasRole('admin')
+  const user = getUserData();
+  return user ? checkRole(user, userData) : false;
 };
 
 export const canManageUser = (targetUser) => {
   const currentUser = getUserData();
-  if (!currentUser) return false;
+  if (!currentUser || !targetUser) return false;
   
-  // Superadmin can manage everyone
-  if (currentUser.role === 'superadmin') return true;
-  
-  // Admin can manage users with 'user' or 'hr' role
-  if (currentUser.role === 'admin') {
-    return ['user', 'hr'].includes(targetUser.role);
-  }
-  
-  // HR can only manage users with 'user' role
-  if (currentUser.role === 'hr') {
-    return targetUser.role === 'user';
-  }
-  
-  // Users can only manage themselves
-  if (currentUser.role === 'user') {
-    return currentUser.id === targetUser.id;
-  }
-  
-  return false;
+  // Use permission-based checking instead of role hierarchy
+  return hasPermission('user.edit');
 };
 
 export const getRedirectPath = (role) => {
-  // Normalize role first (admin1, admin2 -> admin)
-  let normalizedRole = role;
-  if (role === 'admin1' || role === 'admin2') {
-    normalizedRole = 'admin';
-  }
-  
+  const normalizedRole = normalizeRole(role);
   console.log('🔀 Redirect path for role:', { originalRole: role, normalizedRole });
   
   switch (normalizedRole) {
@@ -116,11 +85,11 @@ export const getRedirectPath = (role) => {
       console.log('➡️ Redirecting admin to /dashboard');
       return '/dashboard';
     case 'hr':
-      console.log('➡️ Redirecting HR to /hr/dashboard');
-      return '/hr/dashboard';
+      console.log('➡️ Redirecting hr to /hr');
+      return '/hr';  // Direct to HR dashboard
     case 'user':
-      console.log('➡️ Redirecting user to /profile');
-      return '/dashboard'; // Changed to /dashboard for now since /profile doesn't exist
+      console.log('➡️ Redirecting user to /dashboard');
+      return '/dashboard';
     default:
       console.log('➡️ Unknown role, redirecting to /login');
       return '/login';

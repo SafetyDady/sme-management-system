@@ -1,10 +1,11 @@
 """
 Enhanced Pydantic schemas with comprehensive validation
 """
-from pydantic import BaseModel, EmailStr, validator, Field
+from pydantic import BaseModel, validator, Field
 from typing import Optional, Dict, Any
 from datetime import datetime
 import re
+from email_validator import validate_email, EmailNotValidError
 
 class UserLogin(BaseModel):
     username: str = Field(..., min_length=3, max_length=50, description="Username for authentication")
@@ -53,9 +54,9 @@ class UserLogin(BaseModel):
 
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
-    email: EmailStr = Field(..., description="Valid email address")
+    email: str = Field(..., description="Valid email address")
     password: str = Field(..., min_length=8, max_length=128)
-    role: str = Field(default="user", pattern="^(user|hr|admin|superadmin)$")
+    role: str = Field(default="user", pattern="^(user|admin|admin1|admin2|superadmin|hr|manager)$")
     
     @validator('username')
     def validate_username(cls, v):
@@ -109,6 +110,13 @@ class UserCreate(BaseModel):
         if len(v) > 254:  # RFC 5321 limit
             raise ValueError('Email address is too long')
         
+        # Custom email validation that allows .local domains for development
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        local_email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.local$'
+        
+        if not (re.match(email_pattern, v) or re.match(local_email_pattern, v)):
+            raise ValueError('Invalid email address format')
+        
         return v.lower()
 
 class User(BaseModel):
@@ -118,6 +126,13 @@ class User(BaseModel):
     role: str
     is_active: bool
     created_at: datetime
+    # Exposed employee profile (may be null)
+    employee_code: Optional[str] = None
+    department: Optional[str] = None
+    position: Optional[str] = None
+    hire_date: Optional[datetime] = None  # kept simple; frontend can format
+    phone: Optional[str] = None
+    address: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -133,10 +148,17 @@ class TokenData(BaseModel):
 
 class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50)
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None
     password: Optional[str] = Field(None, min_length=6, max_length=128)
-    role: Optional[str] = Field(None, pattern="^(user|hr|admin|superadmin)$")
+    role: Optional[str] = Field(None, pattern="^(user|admin|admin1|admin2|superadmin|hr|manager)$")
     is_active: Optional[bool] = None
+    # Employee fields (all optional)
+    employee_code: Optional[str] = Field(None, max_length=30)
+    department: Optional[str] = Field(None, max_length=100)
+    position: Optional[str] = Field(None, max_length=100)
+    hire_date: Optional[datetime] = None
+    phone: Optional[str] = Field(None, max_length=30)
+    address: Optional[str] = Field(None, max_length=500)
     
     @validator('username')
     def validate_username(cls, v):
@@ -152,8 +174,17 @@ class UserUpdate(BaseModel):
     
     @validator('email')
     def validate_email(cls, v):
-        if v and len(v) > 254:
-            raise ValueError('Email address is too long')
+        if v:
+            if len(v) > 254:
+                raise ValueError('Email address is too long')
+            
+            # Custom email validation that allows .local domains
+            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            local_email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.local$'
+            
+            if not (re.match(email_pattern, v) or re.match(local_email_pattern, v)):
+                raise ValueError('Invalid email address format')
+        
         return v.lower() if v else v
     
     @validator('password')
@@ -209,7 +240,7 @@ class SuccessResponse(BaseModel):
 
 # Forgot Password Schemas
 class ForgotPasswordRequest(BaseModel):
-    email: EmailStr = Field(..., description="Email address to send reset link")
+    email: str = Field(..., description="Email address to send reset link")
     
     @validator('email')
     def validate_email(cls, v):

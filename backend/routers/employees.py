@@ -5,13 +5,13 @@ from app.database import get_db
 from app.models_hr import HREmployee
 from app.models import User
 from app.schemas import EmployeeCreate, EmployeeUpdate, EmployeeRecord
-from dependencies.auth import require_admin_or_superadmin
+from dependencies.auth import require_employee_manage, require_hr_access
 from app.auth import get_current_user
 
 router = APIRouter(prefix="/employees", tags=["employees"])
 
 @router.post("/", response_model=EmployeeRecord, status_code=status.HTTP_201_CREATED)
-async def create_employee(payload: EmployeeCreate, db: Session = Depends(get_db), current_user=Depends(require_admin_or_superadmin)):
+async def create_employee(payload: EmployeeCreate, db: Session = Depends(get_db), current_user=Depends(require_employee_manage)):
     # Check duplicate emp_code
     exists = db.query(HREmployee).filter(HREmployee.emp_code == payload.emp_code.upper()).first()
     if exists:
@@ -48,7 +48,7 @@ async def list_employees(
     active: Optional[bool] = Query(None),
     q: Optional[str] = Query(None, description="Search first/last name or emp_code"),
     db: Session = Depends(get_db),
-    current_user=Depends(require_admin_or_superadmin)
+    current_user=Depends(require_hr_access)
 ):
     query = db.query(HREmployee)
     if department:
@@ -65,14 +65,14 @@ async def list_employees(
     return query.order_by(HREmployee.emp_code.asc()).all()
 
 @router.get("/{employee_id}", response_model=EmployeeRecord)
-async def get_employee(employee_id: int, db: Session = Depends(get_db), current_user=Depends(require_admin_or_superadmin)):
+async def get_employee(employee_id: int, db: Session = Depends(get_db), current_user=Depends(require_hr_access)):
     emp = db.query(HREmployee).filter(HREmployee.employee_id == employee_id).first()
     if not emp:
         raise HTTPException(status_code=404, detail="Employee not found")
     return emp
 
 @router.patch("/{employee_id}", response_model=EmployeeRecord)
-async def update_employee(employee_id: int, payload: EmployeeUpdate, db: Session = Depends(get_db), current_user=Depends(require_admin_or_superadmin)):
+async def update_employee(employee_id: int, payload: EmployeeUpdate, db: Session = Depends(get_db), current_user=Depends(require_employee_manage)):
     emp = db.query(HREmployee).filter(HREmployee.employee_id == employee_id).first()
     if not emp:
         raise HTTPException(status_code=404, detail="Employee not found")
@@ -85,7 +85,7 @@ async def update_employee(employee_id: int, payload: EmployeeUpdate, db: Session
     return emp
 
 @router.delete("/{employee_id}")
-async def delete_employee(employee_id: int, db: Session = Depends(get_db), current_user=Depends(require_admin_or_superadmin)):
+async def delete_employee(employee_id: int, db: Session = Depends(get_db), current_user=Depends(require_employee_manage)):
     emp = db.query(HREmployee).filter(HREmployee.employee_id == employee_id).first()
     if not emp:
         raise HTTPException(status_code=404, detail="Employee not found")

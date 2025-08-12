@@ -62,6 +62,8 @@ const Dashboard = () => {
       case 'admin1':
       case 'admin2':
         return renderAdminDashboard();
+      case 'hr':
+        return renderHRDashboard();
       default:
         return renderUserDashboard();
     }
@@ -142,6 +144,125 @@ const Dashboard = () => {
               <TrendingUp className="mr-2 h-4 w-4" />
               ดูสถิติ
             </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+
+  const renderHRDashboard = () => (
+    <div className="space-y-6">
+      {/* HR Welcome Banner */}
+      <div className="bg-gradient-to-r from-green-500 to-blue-600 rounded-xl p-6 text-white">
+        <h1 className="text-2xl font-bold mb-2">
+          👥 HR Dashboard - {user?.username}
+        </h1>
+        <p className="text-green-100">
+          HR access | Role: {user?.role} | Access Level: HR Management
+        </p>
+        <p className="text-green-200 text-sm mt-1">
+          Permissions: Employee Management, User Administration
+        </p>
+      </div>
+
+      {/* HR Action Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card className="bg-gradient-to-br from-green-500 to-teal-600 text-white border-0 shadow-lg hover:shadow-xl transition-shadow">
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <Users className="h-6 w-6" />
+              <CardTitle className="text-white">Employee Management</CardTitle>
+            </div>
+            <CardDescription className="text-green-100">
+              จัดการข้อมูลพนักงาน เพิ่ม/แก้ไข/ดูรายชื่อ
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white border-white border"
+              onClick={() => window.location.href = '/hr'}
+            >
+              <Users className="mr-2 h-4 w-4" />
+              จัดการพนักงาน
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-0 shadow-lg hover:shadow-xl transition-shadow">
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <Shield className="h-6 w-6" />
+              <CardTitle className="text-white">User Management</CardTitle>
+            </div>
+            <CardDescription className="text-blue-100">
+              จัดการบัญชีผู้ใช้ในระบบ
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white border-white border"
+              onClick={() => window.location.href = '/users'}
+            >
+              <Shield className="mr-2 h-4 w-4" />
+              จัดการผู้ใช้
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-500 to-pink-600 text-white border-0 shadow-lg hover:shadow-xl transition-shadow">
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <BarChart3 className="h-6 w-6" />
+              <CardTitle className="text-white">Reports</CardTitle>
+            </div>
+            <CardDescription className="text-purple-100">
+              รายงานและสถิติพนักงาน
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white border-white border"
+              onClick={() => window.location.href = '/hr'}
+            >
+              <BarChart3 className="mr-2 h-4 w-4" />
+              ดูรายงาน
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">--</div>
+            <p className="text-xs text-muted-foreground">Click Employee Management to view</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">--</div>
+            <p className="text-xs text-muted-foreground">Click User Management to view</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Departments</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">--</div>
+            <p className="text-xs text-muted-foreground">Go to HR Dashboard for details</p>
           </CardContent>
         </Card>
       </div>

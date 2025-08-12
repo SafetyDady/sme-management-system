@@ -5,7 +5,7 @@ from datetime import datetime
 class UserBase(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr
-    role: str = Field(..., pattern="^(user|admin|admin1|admin2|superadmin)$")
+    role: str = Field(..., pattern="^(user|admin|admin1|admin2|superadmin|hr|manager)$")
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8)
@@ -13,7 +13,7 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50)
     email: Optional[EmailStr] = None
-    role: Optional[str] = Field(None, pattern="^(user|admin|admin1|admin2|superadmin)$")
+    role: Optional[str] = Field(None, pattern="^(user|admin|admin1|admin2|superadmin|hr|manager)$")
 
 class UserResponse(UserBase):
     id: str

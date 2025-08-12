@@ -49,7 +49,7 @@
 ```
 
 #### Production URLs:
-- **Backend API**: https://sme-management-system-production.up.railway.app
+- **Backend API**: https://web-production-5b6ab.up.railway.app
 - **Frontend**: Development on localhost:3001
 - **Database**: PostgreSQL on Railway (production)
 

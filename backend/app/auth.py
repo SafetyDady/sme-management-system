@@ -7,6 +7,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from .database import get_db
 from .models import User
+from .permissions import normalize_role, get_role_permissions
 from dotenv import load_dotenv
 import os
 
@@ -73,6 +74,10 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
     to_encode.update({"exp": expire})
+    
+    # Normalize role in JWT payload
+    if "role" in to_encode:
+        to_encode["role"] = normalize_role(to_encode["role"])
     
     # Enhanced SECRET_KEY preparation with multiple fallbacks
     key_to_use = SECRET_KEY
@@ -159,5 +164,8 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
             detail="User not found",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+    # Normalize user role
+    user.role = normalize_role(user.role)
     return user
 

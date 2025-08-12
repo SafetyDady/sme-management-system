@@ -40,9 +40,9 @@ export default defineConfig(({ command, mode }) => {
       strictPort: true,
       proxy: command === 'serve' ? {
         '/api': {
-          target: process.env.VITE_BACKEND_URL || 'https://sme-management-system-production.up.railway.app',
+          target: process.env.VITE_BACKEND_URL || 'http://localhost:8000',
           changeOrigin: true,
-          secure: true,
+          secure: false,
           // ไม่ต้อง rewrite เพราะ backend มี /api/login และ /api/users อยู่แล้ว
           // rewrite: (path) => path.replace(/^\/api/, ''),
           configure: (proxy, _options) => {
@@ -56,6 +56,16 @@ export default defineConfig(({ command, mode }) => {
               console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
             });
           },
+        },
+        '/auth': {
+          target: process.env.VITE_BACKEND_URL || 'http://localhost:8000',
+          changeOrigin: true,
+          secure: false,
+        },
+        '/health': {
+          target: process.env.VITE_BACKEND_URL || 'http://localhost:8000',
+          changeOrigin: true,
+          secure: false,
         },
       } : undefined,
     },

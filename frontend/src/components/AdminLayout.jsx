@@ -1,6 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
-import { hasRole } from '../lib/auth';
 import { 
   Menu, 
   X, 
@@ -11,73 +10,70 @@ import {
   LogOut,
   Shield,
   BarChart3,
-  Bell
+  Bell,
+  Database,
+  Activity,
+  Briefcase,
+  Cog
 } from 'lucide-react';
 import { Button } from './ui/button.jsx';
 import { Avatar, AvatarFallback } from './ui/avatar.jsx';
 import { useState } from 'react';
 
-const Layout = ({ children }) => {
+const AdminLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const getNavigationItems = () => {
-    const items = [];
-    
-    // Always show Dashboard
-    items.push({
-      name: 'Dashboard',
-      href: '/dashboard',
-      icon: Home,
-      roles: ['superadmin', 'admin', 'hr', 'user']
-    });
-
-    // HR Dashboard - for HR, Admin, and SuperAdmin
-    if (hasRole(user, ['superadmin', 'admin', 'hr'])) {
-      items.push({
-        name: 'HR Management',
-        href: '/hr',
-        icon: Users,
-        roles: ['superadmin', 'admin', 'hr']
-      });
-    }
-
-    // User Management - only for superadmin and admin (HR can also manage users)
-    if (hasRole(user, ['superadmin', 'admin', 'hr'])) {
-      items.push({
+  const getAdminNavigationItems = () => {
+    return [
+      {
+        name: 'Admin Dashboard',
+        href: '/dashboard',
+        icon: Home,
+        description: 'Main admin overview'
+      },
+      {
         name: 'User Management',
         href: '/users',
-        icon: User,
-        roles: ['superadmin', 'admin', 'hr']
-      });
-    }
-
-    // System settings - only for superadmin
-    if (hasRole(user, ['superadmin'])) {
-      items.push({
+        icon: Users,
+        description: 'Manage system users'
+      },
+      {
+        name: 'HR Management',
+        href: '/hr',
+        icon: Briefcase,
+        description: 'HR operations'
+      },
+      {
+        name: 'Reports & Analytics',
+        href: '/analytics',
+        icon: BarChart3,
+        description: 'System reports'
+      },
+      {
         name: 'System Settings',
         href: '/system',
         icon: Settings,
-        roles: ['superadmin']
-      });
-    }
-
-    // Analytics - all roles
-    items.push({
-      name: 'Analytics',
-      href: '/analytics',
-      icon: BarChart3,
-      roles: ['superadmin', 'admin', 'hr', 'user']
-    });
-
-    return items.filter(item => 
-      item.roles.includes(user?.role)
-    );
+        description: 'Configure settings'
+      },
+      {
+        name: 'Security',
+        href: '/security',
+        icon: Shield,
+        description: 'Security management'
+      },
+      {
+        name: 'My Profile',
+        href: '/profile',
+        icon: User,
+        description: 'Personal settings'
+      }
+    ];
   };
 
-  const navigationItems = getNavigationItems();
+  const navigationItems = getAdminNavigationItems();
 
   const handleLogout = () => {
     logout();
@@ -93,52 +89,62 @@ const Layout = ({ children }) => {
         />
       )}
 
-      {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600 to-purple-800 shadow-lg">
+      {/* Fixed Header - Admin Theme */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg">
         <div className="flex items-center justify-between h-16 px-4 sm:px-6">
           <div className="flex items-center">
             <Button
               variant="ghost"
               size="sm"
-              className="text-white hover:bg-purple-700 mr-3"
+              className="text-white hover:bg-blue-700 mr-3"
               onClick={() => setSidebarOpen(!sidebarOpen)}
             >
               <Menu className="h-5 w-5" />
             </Button>
             <h1 className="text-xl font-bold text-white">
-              GC Management
+              🏢 GC Management
             </h1>
-            <span className="ml-2 text-sm text-purple-200">./</span>
+            <span className="ml-2 text-sm text-blue-200">Admin Panel</span>
           </div>
 
           <div className="flex items-center space-x-4">
+            {/* Admin Quick Stats */}
+            <div className="hidden md:flex items-center space-x-4">
+              <div className="text-xs text-blue-100">
+                <span className="font-semibold">25</span> Users
+              </div>
+              <div className="text-xs text-blue-100">
+                <span className="font-semibold">Active</span> System
+              </div>
+            </div>
+
             {/* Notification Bell */}
-            <Button variant="ghost" className="relative text-white hover:bg-purple-700">
+            <Button variant="ghost" className="relative text-white hover:bg-blue-700">
               <Bell className="h-5 w-5" />
               <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                1
+                2
               </span>
             </Button>
             
             {/* User Profile */}
             <div className="flex items-center space-x-2">
               <Avatar className="h-8 w-8 border-2 border-white">
-                <AvatarFallback className="bg-purple-500 text-white">
+                <AvatarFallback className="bg-blue-500 text-white">
                   {user?.username?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="hidden sm:block">
                 <p className="text-sm font-medium text-white">{user?.username}</p>
-                <p className="text-xs text-purple-200 capitalize">{user?.role}</p>
+                <p className="text-xs text-blue-200 capitalize">Administrator</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Sidebar */}
+      {/* Sidebar - Admin Theme */}
       <div className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-purple-700 to-purple-900 shadow-lg transform transition-transform duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-blue-700 to-indigo-800 shadow-lg transform transition-transform duration-300 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         mt-16
       `}>
@@ -154,26 +160,31 @@ const Layout = ({ children }) => {
                   key={item.name}
                   to={item.href}
                   className={`
-                    flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                    flex flex-col px-4 py-3 text-sm font-medium rounded-lg transition-colors group
                     ${isActive 
                       ? 'bg-white bg-opacity-20 text-white shadow-lg' 
-                      : 'text-purple-100 hover:bg-white hover:bg-opacity-10 hover:text-white'
+                      : 'text-blue-100 hover:bg-white hover:bg-opacity-10 hover:text-white'
                     }
                   `}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <Icon className="mr-3 h-5 w-5" />
-                  {item.name}
+                  <div className="flex items-center">
+                    <Icon className="mr-3 h-5 w-5" />
+                    {item.name}
+                  </div>
+                  <span className="text-xs text-blue-200 ml-8 mt-1 group-hover:text-blue-100">
+                    {item.description}
+                  </span>
                 </Link>
               );
             })}
           </nav>
 
-          {/* User info and logout at bottom */}
-          <div className="p-4 border-t border-purple-600">
+          {/* Admin info and logout at bottom */}
+          <div className="p-4 border-t border-blue-600">
             <div className="flex items-center mb-3">
-              <Avatar className="h-10 w-10 border-2 border-purple-400">
-                <AvatarFallback className="bg-purple-500 text-white">
+              <Avatar className="h-10 w-10 border-2 border-blue-400">
+                <AvatarFallback className="bg-blue-500 text-white">
                   {user?.username?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -181,15 +192,28 @@ const Layout = ({ children }) => {
                 <p className="text-sm font-medium text-white truncate">
                   {user?.username}
                 </p>
-                <p className="text-xs text-purple-200 capitalize">
-                  {user?.role}
+                <p className="text-xs text-blue-200">
+                  Administrator - System Access
                 </p>
               </div>
             </div>
+
+            {/* Admin Quick Actions */}
+            <div className="space-y-2 mb-3">
+              <Button 
+                size="sm"
+                variant="ghost" 
+                className="w-full justify-start text-blue-100 hover:text-white hover:bg-white hover:bg-opacity-10"
+              >
+                <Cog className="mr-2 h-4 w-4" />
+                Quick Settings
+              </Button>
+            </div>
+
             <Button 
               onClick={handleLogout} 
               variant="ghost" 
-              className="w-full justify-start text-purple-100 hover:text-white hover:bg-white hover:bg-opacity-10"
+              className="w-full justify-start text-blue-100 hover:text-white hover:bg-white hover:bg-opacity-10"
             >
               <LogOut className="mr-2 h-4 w-4" />
               Log out
@@ -208,5 +232,4 @@ const Layout = ({ children }) => {
   );
 };
 
-export default Layout;
-
+export default AdminLayout;
