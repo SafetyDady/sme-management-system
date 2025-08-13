@@ -767,6 +767,33 @@ app.include_router(users.router, prefix="/api/users")
 app.include_router(auth.router)
 app.include_router(employees.router, prefix="/api")
 
+# Add missing roles config endpoint
+@app.get("/api/roles/config")
+async def roles_config(current_user: User = Depends(get_current_user)):
+    """Return roles configuration"""
+    return {
+        "roles": {
+            "superadmin": {"permissions": ["all"]},
+            "admin": {"permissions": ["read", "write"]}, 
+            "user": {"permissions": ["read"]}
+        }
+    }
+
+# Add missing profile endpoint  
+@app.get("/api/users/me/profile")
+async def get_my_profile(current_user: User = Depends(get_current_user)):
+    """Get current user profile"""
+    return {
+        "user": {
+            "id": current_user.id,
+            "username": current_user.username,
+            "email": current_user.email,
+            "role": current_user.role,
+            "is_active": current_user.is_active
+        },
+        "profile": None  # No employee profile for now
+    }
+
 if __name__ == "__main__":
     import uvicorn
     

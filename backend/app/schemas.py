@@ -310,8 +310,11 @@ class EmployeeCreate(BaseModel):
     department: Optional[str] = Field(None, max_length=100)
     start_date: Optional[datetime] = None
     employment_type: Optional[str] = Field(None, max_length=30)
-    salary_base: Optional[float] = None
+    salary_monthly: Optional[float] = None
+    wage_daily: Optional[float] = None
     contact_phone: Optional[str] = Field(None, max_length=20)
+    contact_address: Optional[str] = None
+    note: Optional[str] = None
     user_id: Optional[str] = Field(None, description="Link to existing user (optional)")
 
     @validator('emp_code')
@@ -324,8 +327,11 @@ class EmployeeUpdate(BaseModel):
     position: Optional[str] = Field(None, max_length=100)
     department: Optional[str] = Field(None, max_length=100)
     employment_type: Optional[str] = Field(None, max_length=30)
-    salary_base: Optional[float] = None
+    salary_monthly: Optional[float] = None
+    wage_daily: Optional[float] = None
     contact_phone: Optional[str] = Field(None, max_length=20)
+    contact_address: Optional[str] = None
+    note: Optional[str] = None
     active_status: Optional[bool] = None
 
 class EmployeeRecord(BaseModel):
@@ -337,8 +343,11 @@ class EmployeeRecord(BaseModel):
     department: Optional[str]
     start_date: Optional[datetime]
     employment_type: Optional[str]
-    salary_base: Optional[float]
+    salary_monthly: Optional[float]
+    wage_daily: Optional[float]
     contact_phone: Optional[str]
+    contact_address: Optional[str]
+    note: Optional[str]
     active_status: bool
     user_id: Optional[str]
 
