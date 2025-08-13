@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { userAPI } from '../lib/api.js';
-import { normalizeRole } from '../lib/permissions.js';
+// Remove normalizeRole import - not needed or we'll define inline
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -10,6 +10,37 @@ import { Badge } from '../components/ui/badge';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+
+// Simple role normalization function
+const normalizeRole = (role) => {
+  const roleMapping = {
+    'employee': 'user',
+    'admin1': 'admin',
+    'admin2': 'admin'
+  };
+  return roleMapping[role] || role;
+};
+
+// Role display names for better UX
+const getRoleDisplayName = (role) => {
+  const displayNames = {
+    'superadmin': 'Super Admin',
+    'director': 'Director', 
+    'admin': 'Administrator',
+    'manager': 'Manager',
+    'hr': 'HR Manager',
+    'supervisor': 'Supervisor',
+    'engineer': 'Engineer',
+    'purchasing': 'Purchasing',
+    'store': 'Store Manager',
+    'accounting': 'Accounting',
+    'employee': 'Employee',
+    'user': 'Employee',
+    'client': 'Client'
+  };
+  return displayNames[role] || role.charAt(0).toUpperCase() + role.slice(1);
+};
+
 import { 
   Users, 
   Plus, 
@@ -22,7 +53,9 @@ import {
   Crown,
   Settings,
   Eye,
-  EyeOff
+  EyeOff,
+  UserPlus,
+  Briefcase
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -52,17 +85,36 @@ const UserManagement = () => {
         
         // Check if user has permission
         // Check if user has permission to access user management
-        const normalizedRole = normalizeRole(user.role);
-        if (!user || !['superadmin', 'admin'].includes(normalizedRole)) {
-          console.warn('⚠️ User does not have permission to view users');
-          toast.error('You do not have permission to view users');
+        console.log('🔍 User role check:', user?.role);
+        const normalizedRole = normalizeRole(user?.role);
+        console.log('🔍 Normalized role:', normalizedRole);
+        
+        // Allow superadmin role access (less restrictive check)
+        if (!user || user.role !== 'superadmin') {
+          console.warn('⚠️ User does not have permission to view users. Role:', user?.role);
+          toast.error('You need superadmin access to view users');
           setUsers([]);
           return;
         }
         
         console.log('🔍 Calling userAPI.getUsers()...');
-        const usersData = await userAPI.getUsers();
-        console.log('✅ Raw users data received:', usersData);
+        const response = await userAPI.getUsers();
+        console.log('✅ Raw API response received:', response);
+        
+        // Handle different response formats from backend
+        let usersData;
+        if (Array.isArray(response)) {
+          // Direct array response
+          usersData = response;
+        } else if (response && Array.isArray(response.users)) {
+          // Wrapped response format: {users: [...], total: number}
+          usersData = response.users;
+        } else {
+          console.error('❌ Invalid response format:', response);
+          throw new Error('Invalid users data format');
+        }
+        
+        console.log('✅ Extracted users data:', usersData);
         
         if (!Array.isArray(usersData)) {
           console.error('❌ Users data is not an array:', usersData);
@@ -77,7 +129,6 @@ const UserManagement = () => {
         
         console.log('✅ Transformed users:', transformedUsers);
         console.log('🔍 Sample user object:', transformedUsers[0]);
-        console.log('🔍 User3 object:', transformedUsers.find(u => u.username === 'user3'));
         
         setUsers(transformedUsers);
         toast.success(`Loaded ${transformedUsers.length} users successfully`);
@@ -120,9 +171,21 @@ const UserManagement = () => {
     const normalizedRole = normalizeRole(role);
     switch (normalizedRole) {
       case 'superadmin':
+      case 'director':
         return <Crown className="h-4 w-4" />;
       case 'admin':
         return <Shield className="h-4 w-4" />;
+      case 'manager':
+      case 'hr':
+      case 'supervisor':
+        return <UserCheck className="h-4 w-4" />;
+      case 'engineer':
+      case 'purchasing':
+      case 'store':
+      case 'accounting':
+        return <Briefcase className="h-4 w-4" />;
+      case 'client':
+        return <UserPlus className="h-4 w-4" />;
       default:
         return <Users className="h-4 w-4" />;
     }
@@ -133,8 +196,28 @@ const UserManagement = () => {
     switch (normalizedRole) {
       case 'superadmin':
         return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'director':
+        return 'bg-indigo-100 text-indigo-800 border-indigo-200';
       case 'admin':
         return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'manager':
+        return 'bg-cyan-100 text-cyan-800 border-cyan-200';
+      case 'hr':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'supervisor':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'engineer':
+        return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'purchasing':
+        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'store':
+        return 'bg-violet-100 text-violet-800 border-violet-200';
+      case 'accounting':
+        return 'bg-teal-100 text-teal-800 border-teal-200';
+      case 'client':
+        return 'bg-pink-100 text-pink-800 border-pink-200';
+      case 'employee':
+      case 'user':
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -441,7 +524,7 @@ const UserManagement = () => {
                     <td className="py-3 px-4">
                       <Badge className={`flex items-center gap-1 w-fit ${getRoleBadgeColor(targetUser.role)}`}>
                         {getRoleIcon(targetUser.role)}
-                        {targetUser.role}
+                        {getRoleDisplayName(targetUser.role)}
                       </Badge>
                     </td>
                     <td className="py-3 px-4">
@@ -569,13 +652,31 @@ const UserManagement = () => {
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="user">User</SelectItem>
-                    {(user?.role === 'superadmin' || user?.role === 'admin') && (
+                    {/* Basic User Role */}
+                    <SelectItem value="user">Employee (User)</SelectItem>
+                    <SelectItem value="employee">Employee</SelectItem>
+                    
+                    {/* Operational Roles */}
+                    <SelectItem value="engineer">Engineer</SelectItem>
+                    <SelectItem value="purchasing">Purchasing</SelectItem>
+                    <SelectItem value="store">Store</SelectItem>
+                    <SelectItem value="accounting">Accounting</SelectItem>
+                    <SelectItem value="client">Client</SelectItem>
+                    
+                    {/* Management Roles */}
+                    <SelectItem value="supervisor">Supervisor</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="hr">HR Manager</SelectItem>
+                    
+                    {/* Administrative Roles - Restricted Access */}
+                    {(user?.role === 'superadmin' || user?.role === 'admin' || user?.role === 'director') && (
                       <>
-                        <SelectItem value="hr">HR</SelectItem>
                         <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="director">Director</SelectItem>
                       </>
                     )}
+                    
+                    {/* Super Admin - Only SuperAdmin can assign */}
                     {user?.role === 'superadmin' && (
                       <SelectItem value="superadmin">SuperAdmin</SelectItem>
                     )}

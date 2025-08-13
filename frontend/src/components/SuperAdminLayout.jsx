@@ -29,6 +29,12 @@ const SuperAdminLayout = ({ children }) => {
   const getSuperAdminNavigationItems = () => {
     return [
       {
+        name: 'SuperAdmin Dashboard',
+        href: '/superadmin/dashboard',
+        icon: Home,
+        description: 'SuperAdmin-specific dashboard'
+      },
+      {
         name: 'System Dashboard',
         href: '/dashboard',
         icon: Home,

@@ -17,14 +17,31 @@ import UserManagement from './pages/UserManagement';
 import Profile from './pages/Profile';
 import HRDashboard from './pages/hr/HRDashboard';
 import { getRedirectPath } from './lib/auth';
+// Import role-specific dashboards
+import {
+  DirectorDashboard,
+  SuperAdminDashboard,
+  ManagerDashboard,
+  HRDashboard as HRDashboardNew,
+  SupervisorDashboard,
+  EngineerDashboard,
+  PurchasingDashboard,
+  StoreDashboard,
+  AccountingDashboard,
+  EmployeeDashboard,
+  ClientDashboard
+} from './pages/dashboards';
 import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 
 // Default redirect component
 const DefaultRedirect = () => {
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
   
-  if (loading) {
+  console.log('🔀 DefaultRedirect - Auth state:', { user: !!user, isLoading });
+  
+  if (isLoading) {
+    console.log('⏳ DefaultRedirect - Still loading auth state...');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -34,11 +51,13 @@ const DefaultRedirect = () => {
   
   // If not authenticated, go to login
   if (!user) {
+    console.log('🚫 DefaultRedirect - No user, redirecting to login');
     return <Navigate to="/login" replace />;
   }
   
   // If authenticated, redirect based on role
   const redirectPath = getRedirectPath(user.role);
+  console.log('✅ DefaultRedirect - User found, redirecting to:', redirectPath);
   return <Navigate to={redirectPath} replace />;
 };
 
@@ -78,6 +97,95 @@ function App() {
                 <ProtectedRoute requiredRole="hr">
                   <RoleBasedLayout>
                     <Dashboard />
+                  </RoleBasedLayout>
+                </ProtectedRoute>
+              } />
+              
+              {/* Role-specific Dashboard Routes */}
+              <Route path="/director/dashboard" element={
+                <ProtectedRoute requiredRole="director">
+                  <RoleBasedLayout>
+                    <DirectorDashboard />
+                  </RoleBasedLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/superadmin/dashboard" element={
+                <ProtectedRoute requiredRole="superadmin">
+                  <RoleBasedLayout>
+                    <SuperAdminDashboard />
+                  </RoleBasedLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/manager/dashboard" element={
+                <ProtectedRoute requiredRole="manager">
+                  <RoleBasedLayout>
+                    <ManagerDashboard />
+                  </RoleBasedLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/hr/dashboard" element={
+                <ProtectedRoute requiredRole="hr">
+                  <RoleBasedLayout>
+                    <HRDashboardNew />
+                  </RoleBasedLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/supervisor/dashboard" element={
+                <ProtectedRoute requiredRole="supervisor">
+                  <RoleBasedLayout>
+                    <SupervisorDashboard />
+                  </RoleBasedLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/engineer/dashboard" element={
+                <ProtectedRoute requiredRole="engineer">
+                  <RoleBasedLayout>
+                    <EngineerDashboard />
+                  </RoleBasedLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/purchasing/dashboard" element={
+                <ProtectedRoute requiredRole="purchasing">
+                  <RoleBasedLayout>
+                    <PurchasingDashboard />
+                  </RoleBasedLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/store/dashboard" element={
+                <ProtectedRoute requiredRole="store">
+                  <RoleBasedLayout>
+                    <StoreDashboard />
+                  </RoleBasedLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/accounting/dashboard" element={
+                <ProtectedRoute requiredRole="accounting">
+                  <RoleBasedLayout>
+                    <AccountingDashboard />
+                  </RoleBasedLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/employee/dashboard" element={
+                <ProtectedRoute requiredRole="employee">
+                  <RoleBasedLayout>
+                    <EmployeeDashboard />
+                  </RoleBasedLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/client/dashboard" element={
+                <ProtectedRoute requiredRole="client">
+                  <RoleBasedLayout>
+                    <ClientDashboard />
                   </RoleBasedLayout>
                 </ProtectedRoute>
               } />

@@ -239,7 +239,8 @@ export const userAPI = {
   getUsers: async () => {
     console.log('🔍 Calling userAPI.getUsers()...');
     try {
-      const response = await api.get('/api/users/');
+      // Use /api/users (without trailing slash) to avoid 307 redirects
+      const response = await api.get('/api/users');
       console.log('✅ Users API Success:', response.data);
       return response.data;
     } catch (error) {
@@ -268,7 +269,8 @@ export const userAPI = {
     console.log('🔍 Clean user data:', cleanUserData);
     
     try {
-      const response = await api.post('/api/users/', cleanUserData);
+      // Use /api/users (without trailing slash)
+      const response = await api.post('/api/users', cleanUserData);
       console.log('✅ Create user success:', response.data);
       return response.data;
     } catch (error) {

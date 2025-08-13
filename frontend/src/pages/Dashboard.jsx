@@ -2,7 +2,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { systemAPI } from '../lib/api.js';
-import { normalizeRole } from '../lib/permissions.js';
+// Remove normalizeRole import - function is defined inline in auth.js
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card.jsx';
 import { Button } from '../components/ui/button.jsx';
 import { 
@@ -54,7 +54,8 @@ const Dashboard = () => {
   // Different dashboard content based on user role
   const getDashboardContent = () => {
     const userRole = user?.role;
-    const normalizedRole = normalizeRole(userRole);
+    // Simple role normalization - handle common role mappings
+    const normalizedRole = userRole === 'employee' ? 'user' : userRole;
     console.log('🎨 Rendering dashboard for role:', userRole, '→', normalizedRole);
     
     switch(normalizedRole) {

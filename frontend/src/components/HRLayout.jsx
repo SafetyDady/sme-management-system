@@ -31,8 +31,20 @@ const HRLayout = ({ children }) => {
     return [
       {
         name: 'HR Dashboard',
-        href: '/hr',
+        href: '/hr/dashboard',
         icon: Home,
+        description: 'HR-specific dashboard'
+      },
+      {
+        name: 'General Dashboard',
+        href: '/dashboard',
+        icon: Home,
+        description: 'General system dashboard'
+      },
+      {
+        name: 'Legacy HR Dashboard',
+        href: '/hr',
+        icon: Building,
         description: 'HR overview and metrics'
       },
       {
