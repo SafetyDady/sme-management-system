@@ -11,82 +11,81 @@ import {
   Shield,
   BarChart3,
   Bell,
-  Calendar,
-  Clock,
-  UserPlus,
-  FileText,
-  Building
+  Database,
+  Activity,
+  Globe,
+  Cog
 } from 'lucide-react';
 import { Button } from '../ui/button.jsx';
 import { Avatar, AvatarFallback } from '../ui/avatar.jsx';
 import { useState } from 'react';
 
-const HRLayout = ({ children }) => {
+const SuperAdminLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const getHRNavigationItems = () => {
+  const getSuperAdminNavigationItems = () => {
     return [
       {
-        name: 'HR Dashboard',
-        href: '/hr/dashboard',
+        name: 'SuperAdmin Dashboard',
+        href: '/superadmin/dashboard',
         icon: Home,
-        description: 'HR-specific dashboard'
+        description: 'SuperAdmin-specific dashboard'
       },
       {
-        name: 'General Dashboard',
+        name: 'System Dashboard',
         href: '/dashboard',
         icon: Home,
-        description: 'General system dashboard'
+        description: 'Main system overview'
       },
       {
-        name: 'Legacy HR Dashboard',
-        href: '/hr',
-        icon: Building,
-        description: 'HR overview and metrics'
-      },
-      {
-        name: 'Employee Management',
-        href: '/hr/employees',
+        name: 'User Management',
+        href: '/users',
         icon: Users,
-        description: 'Manage employee records'
+        description: 'Manage all system users'
       },
       {
-        name: 'Leave Management',
-        href: '/hr/leaves',
-        icon: Calendar,
-        description: 'Approve/reject leaves'
+        name: 'System Settings',
+        href: '/system',
+        icon: Settings,
+        description: 'Configure system settings'
       },
       {
-        name: 'Recruitment',
-        href: '/hr/recruitment',
-        icon: UserPlus,
-        description: 'Hiring and recruitment'
+        name: 'Analytics & Reports',
+        href: '/analytics',
+        icon: BarChart3,
+        description: 'System analytics and reports'
       },
       {
-        name: 'HR Reports',
-        href: '/hr/reports',
-        icon: FileText,
-        description: 'Generate HR reports'
+        name: 'Database Management',
+        href: '/database',
+        icon: Database,
+        description: 'Database operations'
       },
       {
-        name: 'Department Management',
-        href: '/hr/departments',
-        icon: Building,
-        description: 'Manage departments'
+        name: 'System Monitoring',
+        href: '/monitoring',
+        icon: Activity,
+        description: 'Monitor system health'
       },
       {
-        name: 'My Profile',
-        href: '/profile',
-        icon: User,
-        description: 'Personal profile settings'
+        name: 'Village Management',
+        href: '/village',
+        icon: Globe,
+        description: 'Manage villages and locations'
+      },
+      {
+        name: 'Security Center',
+        href: '/security',
+        icon: Shield,
+        description: 'Security settings and logs'
       }
     ];
   };
 
-  const navigationItems = getHRNavigationItems();
+  const navigationItems = getSuperAdminNavigationItems();
 
   const handleLogout = () => {
     logout();
@@ -102,14 +101,14 @@ const HRLayout = ({ children }) => {
         />
       )}
 
-      {/* Fixed Header - HR Theme */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-green-600 to-blue-600 shadow-lg">
+      {/* Fixed Header - SuperAdmin Theme */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-800 to-blue-900 shadow-lg">
         <div className="flex items-center justify-between h-16 px-4 sm:px-6">
           <div className="flex items-center">
             <Button
               variant="ghost"
               size="sm"
-              className="text-white hover:bg-green-700 mr-3"
+              className="text-white hover:bg-blue-700 mr-3"
               onClick={() => setSidebarOpen(!sidebarOpen)}
             >
               <Menu className="h-5 w-5" />
@@ -117,47 +116,43 @@ const HRLayout = ({ children }) => {
             <h1 className="text-xl font-bold text-white">
               🏢 GC Management
             </h1>
-            <span className="ml-2 text-sm text-green-200">HR Portal</span>
+            <span className="ml-2 text-sm text-blue-200">SuperAdmin Console</span>
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* HR Quick Stats */}
-            <div className="hidden md:flex items-center space-x-4">
-              <div className="text-xs text-green-100">
-                <span className="font-semibold">12</span> Employees
-              </div>
-              <div className="text-xs text-green-100">
-                <span className="font-semibold">3</span> Pending
-              </div>
+            {/* System Status */}
+            <div className="hidden md:flex items-center space-x-2">
+              <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-xs text-blue-100">System Online</span>
             </div>
 
             {/* Notification Bell */}
-            <Button variant="ghost" className="relative text-white hover:bg-green-700">
+            <Button variant="ghost" className="relative text-white hover:bg-blue-700">
               <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-orange-500 rounded-full text-xs text-white flex items-center justify-center">
-                5
+              <span className="absolute -top-1 -right-1 h-4 w-4 bg-yellow-500 rounded-full text-xs text-black flex items-center justify-center">
+                1
               </span>
             </Button>
             
             {/* User Profile */}
             <div className="flex items-center space-x-2">
               <Avatar className="h-8 w-8 border-2 border-white">
-                <AvatarFallback className="bg-green-500 text-white">
+                <AvatarFallback className="bg-blue-600 text-white">
                   {user?.username?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="hidden sm:block">
                 <p className="text-sm font-medium text-white">{user?.username}</p>
-                <p className="text-xs text-green-200 capitalize">HR Manager</p>
+                <p className="text-xs text-blue-200 capitalize">SuperAdmin</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Sidebar - HR Theme */}
+      {/* Sidebar - SuperAdmin Theme */}
       <div className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-green-700 to-blue-800 shadow-lg transform transition-transform duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-blue-800 to-blue-950 shadow-lg transform transition-transform duration-300 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         mt-16
       `}>
@@ -175,8 +170,8 @@ const HRLayout = ({ children }) => {
                   className={`
                     flex flex-col px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 group
                     ${isActive 
-                      ? 'bg-green-600 bg-opacity-90 text-white shadow-lg border border-green-400' 
-                      : 'text-green-100 hover:bg-green-700 hover:bg-opacity-70 hover:text-white font-medium hover:shadow-md'
+                      ? 'bg-blue-600 bg-opacity-90 text-white shadow-lg border border-blue-400' 
+                      : 'text-blue-100 hover:bg-blue-700 hover:bg-opacity-70 hover:text-white font-medium hover:shadow-md'
                     }
                   `}
                   onClick={() => setSidebarOpen(false)}
@@ -189,8 +184,8 @@ const HRLayout = ({ children }) => {
                   </div>
                   <span className={`text-xs ml-8 mt-1 ${
                     isActive 
-                      ? 'text-green-100 font-semibold' 
-                      : 'text-green-200 group-hover:text-green-100 group-hover:font-medium'
+                      ? 'text-blue-100 font-semibold' 
+                      : 'text-blue-200 group-hover:text-blue-100 group-hover:font-medium'
                   }`}>
                     {item.description}
                   </span>
@@ -199,11 +194,11 @@ const HRLayout = ({ children }) => {
             })}
           </nav>
 
-          {/* HR info and logout at bottom */}
-          <div className="p-4 border-t border-green-600">
+          {/* SuperAdmin info and logout at bottom */}
+          <div className="p-4 border-t border-blue-700">
             <div className="flex items-center mb-3">
-              <Avatar className="h-10 w-10 border-2 border-green-400">
-                <AvatarFallback className="bg-green-500 text-white">
+              <Avatar className="h-10 w-10 border-2 border-blue-400">
+                <AvatarFallback className="bg-blue-600 text-white">
                   {user?.username?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -211,28 +206,28 @@ const HRLayout = ({ children }) => {
                 <p className="text-sm font-medium text-white truncate">
                   {user?.username}
                 </p>
-                <p className="text-xs text-green-200">
-                  HR Manager - Employee Access
+                <p className="text-xs text-blue-200">
+                  SuperAdmin - Full Access
                 </p>
               </div>
             </div>
-
-            {/* HR Quick Actions */}
+            
+            {/* Quick Actions */}
             <div className="space-y-2 mb-3">
               <Button 
                 size="sm"
                 variant="ghost" 
-                className="w-full justify-start text-green-100 hover:text-white hover:bg-white hover:bg-opacity-10"
+                className="w-full justify-start text-blue-200 hover:text-white hover:bg-white hover:bg-opacity-10"
               >
-                <Clock className="mr-2 h-4 w-4" />
-                Pending Leaves
+                <Cog className="mr-2 h-4 w-4" />
+                System Config
               </Button>
             </div>
 
             <Button 
               onClick={handleLogout} 
               variant="ghost" 
-              className="w-full justify-start text-green-100 hover:text-white hover:bg-white hover:bg-opacity-10"
+              className="w-full justify-start text-blue-200 hover:text-white hover:bg-white hover:bg-opacity-10"
             >
               <LogOut className="mr-2 h-4 w-4" />
               Log out
@@ -251,4 +246,4 @@ const HRLayout = ({ children }) => {
   );
 };
 
-export default HRLayout;
+export default SuperAdminLayout;

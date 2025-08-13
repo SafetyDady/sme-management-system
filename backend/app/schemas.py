@@ -324,8 +324,11 @@ class EmployeeCreate(BaseModel):
         return v.upper()
 
 class EmployeeUpdate(BaseModel):
+    first_name: Optional[str] = Field(None, min_length=1, max_length=50)
+    last_name: Optional[str] = Field(None, min_length=1, max_length=50)
     position: Optional[str] = Field(None, max_length=100)
     department: Optional[str] = Field(None, max_length=100)
+    start_date: Optional[datetime] = None
     employment_type: Optional[str] = Field(None, max_length=30)
     salary_monthly: Optional[float] = None
     wage_daily: Optional[float] = None

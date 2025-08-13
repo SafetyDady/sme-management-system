@@ -96,13 +96,33 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout function
+  // Logout function with enhanced security
   const logout = () => {
+    console.log('🚪 Logging out user:', user?.username);
+    
+    // Clear all authentication data
     clearAuthData();
     setUser(null);
     setIsAuthenticated(false);
+    
+    // Clear browser history and cache to prevent back button abuse
+    if (window.history.length > 1) {
+      window.history.go(-(window.history.length - 1));
+    }
+    
+    // Replace current history state
+    window.history.replaceState(null, '', '/login');
+    
+    // Clear any cached pages
+    if ('caches' in window) {
+      caches.keys().then(names => {
+        names.forEach(name => caches.delete(name));
+      });
+    }
+    
+    // Force page reload to clear any cached states
     toast.success('Logged out successfully');
-    window.location.href = '/login';
+    window.location.replace('/login');
   };
 
   // Update user data

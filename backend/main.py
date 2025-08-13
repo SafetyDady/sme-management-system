@@ -143,7 +143,7 @@ app.add_middleware(
         "https://127.0.0.1:5174"
     ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
     expose_headers=["X-Request-ID"]
 )

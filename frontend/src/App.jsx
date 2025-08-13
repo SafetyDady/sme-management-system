@@ -3,19 +3,20 @@ import { ToastContainer } from 'react-toastify';
 import { Toaster } from 'sonner';
 import { AuthProvider, useAuth } from './hooks/useAuth.jsx';
 import ProtectedRoute from './components/ProtectedRoute';
-import Layout from './components/Layout';
-import SuperAdminLayout from './components/SuperAdminLayout';
-import AdminLayout from './components/AdminLayout';
-import HRLayout from './components/HRLayout';
+import DashboardRedirect from './components/DashboardRedirect';
+import SecurityStatus from './components/SecurityStatus.jsx';
+import Layout from './components/layouts/Layout';
+import SuperAdminLayout from './components/layouts/SuperAdminLayout';
+import AdminLayout from './components/layouts/AdminLayout';
+import HRLayout from './components/layouts/HRLayout';
 import { ConnectionVerification } from './components/ConnectionVerification';
 import ErrorBoundary from './components/ErrorBoundary';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import Dashboard from './pages/Dashboard';
-import UserManagement from './pages/UserManagement';
 import Profile from './pages/Profile';
-import HRDashboard from './pages/hr/HRDashboard';
+import { UserManagement } from './features/user-management';
+import EmployeeManagement from './features/employee-management/pages/EmployeeManagementFixed';
 import { getRedirectPath } from './lib/auth';
 // Import role-specific dashboards
 import {
@@ -61,11 +62,18 @@ const DefaultRedirect = () => {
   return <Navigate to={redirectPath} replace />;
 };
 
-// Layout selector based on user role
+// Layout selector based on user role with security validation
 const RoleBasedLayout = ({ children }) => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   
-  if (!user) return <Layout>{children}</Layout>;
+  // Security check - ensure user is still authenticated
+  if (!isAuthenticated || !user) {
+    console.log('🚨 RoleBasedLayout: User not authenticated, redirecting to login');
+    return <Navigate to="/login" replace />;
+  }
+
+  // Log current user role for security auditing
+  console.log('🔍 RoleBasedLayout: Current user role:', user.role);
   
   switch (user.role) {
     case 'superadmin':
@@ -92,12 +100,10 @@ function App() {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/verify-connection" element={<ConnectionVerification />} />
               
-              {/* Protected Routes - Dashboard accessible to hr and above */}
+              {/* Protected Routes - Dashboard redirect to role-specific dashboard */}
               <Route path="/dashboard" element={
                 <ProtectedRoute requiredRole="hr">
-                  <RoleBasedLayout>
-                    <Dashboard />
-                  </RoleBasedLayout>
+                  <DashboardRedirect />
                 </ProtectedRoute>
               } />
               
@@ -211,7 +217,16 @@ function App() {
               <Route path="/hr" element={
                 <ProtectedRoute requiredRole="hr">
                   <RoleBasedLayout>
-                    <HRDashboard />
+                    <HRDashboardNew />
+                  </RoleBasedLayout>
+                </ProtectedRoute>
+              } />
+              
+              {/* HR Employee Management */}
+              <Route path="/hr/employees" element={
+                <ProtectedRoute requiredRole="hr">
+                  <RoleBasedLayout>
+                    <EmployeeManagement />
                   </RoleBasedLayout>
                 </ProtectedRoute>
               } />
@@ -280,6 +295,7 @@ function App() {
               theme="light"
             />
             <Toaster position="top-right" richColors />
+            <SecurityStatus />
           </div>
         </Router>
       </AuthProvider>
