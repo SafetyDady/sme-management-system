@@ -11,7 +11,7 @@ const UserList = ({ users, onEdit, onDelete, onCreateNew, onToggleStatus, onEmpl
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [sortBy, setSortBy] = useState('username');
-  const [viewMode, setViewMode] = useState('cards'); // 'cards' or 'table'
+  const [viewMode, setViewMode] = useState('table'); // 'cards' or 'table'
 
   // Filter and sort users
   const filteredUsers = users
