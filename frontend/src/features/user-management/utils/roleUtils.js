@@ -1,9 +1,7 @@
 // Role utility functions for user management
 export const normalizeRole = (role) => {
   const roleMapping = {
-    'employee': 'user',
-    'admin1': 'admin',
-    'admin2': 'admin'
+    'employee': 'user'
   };
   return roleMapping[role] || role;
 };

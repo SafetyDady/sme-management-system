@@ -5,6 +5,15 @@ const ROLES_CONFIG = {
   "roles": {
     "director": { "name": "Director", "level": 5, "permissions": ["*"] },
     "superadmin": { "name": "Super Admin", "level": 4, "permissions": ["*"] },
+    "system_admin": { 
+      "name": "System Admin", 
+      "level": 3,
+      "permissions": [
+        "user.view", "user.create", "user.edit", "user.delete",
+        "employee.view", "employee.create", "employee.edit", "employee.delete",
+        "hr.leave.view", "hr.leave.approve", "system.settings.view"
+      ]
+    },
     "admin": { 
       "name": "Admin", 
       "level": 3,
@@ -102,8 +111,7 @@ const ROLES_CONFIG = {
   "role_mapping": {
     "director": "director",
     "superadmin": "superadmin", 
-    "admin1": "admin", 
-    "admin2": "admin", 
+    "system_admin": "system_admin",
     "admin": "admin",
     "manager": "manager",
     "hr": "hr", 
@@ -234,23 +242,23 @@ export const getRedirectPath = (role) => {
   const normalizedRole = normalizeRole(role);
   console.log('🔀 Redirect path for role:', { originalRole: role, normalizedRole });
   
-  // Updated to use role-specific dashboard routes
-  switch (role) {
-    case 'director':
-      console.log('➡️ Redirecting director to /director/dashboard');
-      return '/director/dashboard';
+  // Role-specific dashboard routes based on your specification
+  switch (normalizedRole) {
     case 'superadmin':
       console.log('➡️ Redirecting superadmin to /superadmin/dashboard');
       return '/superadmin/dashboard';
+    case 'director':
+      console.log('➡️ Redirecting director to /director/dashboard');
+      return '/director/dashboard';
+    case 'system_admin':
+      console.log('➡️ Redirecting system_admin to /admin/dashboard');
+      return '/admin/dashboard';
     case 'admin':
-      console.log('➡️ Redirecting admin to /dashboard');
-      return '/dashboard';
+      console.log('➡️ Redirecting admin to /admin/dashboard');
+      return '/admin/dashboard';
     case 'manager':
       console.log('➡️ Redirecting manager to /manager/dashboard');
       return '/manager/dashboard';
-    case 'hr':
-      console.log('➡️ Redirecting hr to /hr/dashboard');
-      return '/hr/dashboard';
     case 'supervisor':
       console.log('➡️ Redirecting supervisor to /supervisor/dashboard');
       return '/supervisor/dashboard';
@@ -263,15 +271,12 @@ export const getRedirectPath = (role) => {
     case 'store':
       console.log('➡️ Redirecting store to /store/dashboard');
       return '/store/dashboard';
-    case 'accounting':
-      console.log('➡️ Redirecting accounting to /accounting/dashboard');
-      return '/accounting/dashboard';
+    case 'hr':
+      console.log('➡️ Redirecting hr to /hr/dashboard');
+      return '/hr/dashboard';
     case 'employee':
       console.log('➡️ Redirecting employee to /employee/dashboard');
       return '/employee/dashboard';
-    case 'client':
-      console.log('➡️ Redirecting client to /client/dashboard');
-      return '/client/dashboard';
     case 'user':
       console.log('➡️ Redirecting user to /employee/dashboard');
       return '/employee/dashboard';

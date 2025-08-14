@@ -1,5 +1,4 @@
-{
-  "roles": {
+{  "roles": {
     "superadmin": {
       "name": "Super Admin",
       "level": 5,
@@ -29,51 +28,29 @@
         "hr.leave.view", "hr.leave.approve",
         "system.settings.view"
       ]
+    },  "superadmin": {
+      "name": "Super Admin",
+      "level": 4,
+      "permissions": ["*"]
     },
-    "manager": {
-      "name": "Manager",
+    "system_admin": {
+      "name": "System Admin",
       "level": 3,
       "permissions": [
-        "employee.view", "employee.edit",
-        "user.view", "user.edit",
+        "user.view", "user.create", "user.edit", "user.delete",
+        "employee.view", "employee.create", "employee.edit", "employee.delete",
         "hr.leave.view", "hr.leave.approve",
-        "hr.daily.view", "hr.daily.approve", "hr.reports.view"
+        "system.settings.view"
       ]
     },
-    "supervisor": {
-      "name": "Supervisor",
-      "level": 2,
+    "admin": {
+      "name": "Admin",
+      "level": 3,
       "permissions": [
-        "employee.view", "employee.edit",
+        "user.view", "user.create", "user.edit", "user.delete",
+        "employee.view", "employee.create", "employee.edit", "employee.delete",
         "hr.leave.view", "hr.leave.approve",
-        "hr.daily.view", "hr.daily.approve"
-      ]
-    },
-    "engineer": {
-      "name": "Engineer",
-      "level": 1,
-      "permissions": [
-        "profile.view", "profile.edit",
-        "hr.leave.view", "hr.leave.create",
-        "hr.daily.view", "hr.daily.create"
-      ]
-    },
-    "purchasing": {
-      "name": "Purchasing",
-      "level": 1,
-      "permissions": [
-        "profile.view", "profile.edit",
-        "hr.leave.view", "hr.leave.create",
-        "hr.daily.view", "hr.daily.create"
-      ]
-    },
-    "store": {
-      "name": "Store",
-      "level": 1,
-      "permissions": [
-        "profile.view", "profile.edit",
-        "hr.leave.view", "hr.leave.create",
-        "hr.daily.view", "hr.daily.create"
+        "system.settings.view"
       ]
     },
     "hr": {
@@ -87,17 +64,8 @@
         "hr.reports.view"
       ]
     },
-    "employee": {
-      "name": "Employee",
-      "level": 1,
-      "permissions": [
-        "profile.view", "profile.edit",
-        "hr.leave.view", "hr.leave.create",
-        "hr.daily.view", "hr.daily.create"
-      ]
-    },
     "user": {
-      "name": "User",
+      "name": "Employee",
       "level": 1,
       "permissions": [
         "profile.view", "profile.edit",
@@ -108,16 +76,10 @@
   },
   "role_mapping": {
     "superadmin": "superadmin",
-    "director": "director",
     "system_admin": "system_admin",
-    "admin": "admin",
-    "manager": "manager",
-    "supervisor": "supervisor",
-    "engineer": "engineer",
-    "purchasing": "purchasing",
-    "store": "store",
+    "admin": "admin", 
     "hr": "hr",
-    "employee": "employee",
-    "user": "user"
+    "user": "user",
+    "employee": "user"
   }
 }

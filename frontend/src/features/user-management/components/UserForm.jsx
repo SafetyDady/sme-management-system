@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { AVAILABLE_ROLES, getRoleDisplayName, getRoleIcon, canEditRole } from '../utils/roleUtils.js';
 import { useAuth } from '../../../hooks/useAuth.jsx';
+import { getToken } from '../../../lib/auth.js';
 
 const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
   const { user: currentUser } = useAuth();
@@ -13,10 +14,13 @@ const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
     username: '',
     email: '',
     password: '',
-    role: 'user'  // เปลี่ยนจาก employee เป็น user
+    role: 'user',  // เปลี่ยนจาก employee เป็น user
+    employee_id: null  // เพิ่ม employee_id
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
+  const [availableEmployees, setAvailableEmployees] = useState([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
 
   // Initialize form data when user prop changes
   useEffect(() => {
@@ -25,18 +29,73 @@ const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
         username: user.username || '',
         email: user.email || '',
         password: '', // Never pre-fill password
-        role: user.role || 'employee'
+        role: user.role || 'employee',
+        employee_id: user.employee_id || null
       });
     } else {
       setFormData({
         username: '',
         email: '',
         password: '',
-        role: 'user'  // เปลี่ยนจาก employee เป็น user
+        role: 'user',  // เปลี่ยนจาก employee เป็น user
+        employee_id: null
       });
     }
     setErrors({});
   }, [user]);
+
+  // Load unassigned employees for SystemAdmin and SuperAdmin
+  useEffect(() => {
+    const fetchUnassignedEmployees = async () => {
+      if (currentUser?.role === 'system_admin' || currentUser?.role === 'superadmin') {
+        setLoadingEmployees(true);
+        try {
+          const response = await fetch('/api/users/employees/unassigned', {
+            headers: {
+              'Authorization': `Bearer ${getToken()}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const employees = await response.json();
+            
+            // If user has assigned employee, add it to options for display
+            let employeeOptions = [...employees];
+            if (user?.employee_id) {
+              // Find if current employee is in unassigned list
+              const isCurrentInList = employees.find(emp => emp.id === user.employee_id);
+              if (!isCurrentInList) {
+                // Add current assignment as first option
+                const currentEmployee = {
+                  id: user.employee_id,
+                  employee_code: user.employee_code || `EMP${user.employee_id}`,
+                  first_name: user.first_name || 'Unknown',
+                  last_name: user.last_name || '',
+                  department: user.department || null,
+                  position: user.position || null,
+                  is_current: true // Mark as current assignment
+                };
+                employeeOptions = [currentEmployee, ...employees];
+              }
+            }
+            
+            setAvailableEmployees(employeeOptions);
+          } else {
+            console.error('Failed to fetch employees');
+            setAvailableEmployees([]);
+          }
+        } catch (error) {
+          console.error('Error loading employees:', error);
+          setAvailableEmployees([]);
+        } finally {
+          setLoadingEmployees(false);
+        }
+      }
+    };
+
+    fetchUnassignedEmployees();
+  }, [currentUser?.role, user?.employee_id]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -92,6 +151,9 @@ const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
     if (user && !submitData.password) {
       delete submitData.password;
     }
+    
+    // Debug log
+    console.log('🔍 UserForm submitting data:', submitData);
     
     onSubmit(submitData);
   };
@@ -173,6 +235,43 @@ const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
           <p className="text-sm text-red-500">{errors.password}</p>
         )}
       </div>
+
+      {/* Employee Assignment - Only for SystemAdmin and SuperAdmin */}
+      {(currentUser?.role === 'system_admin' || currentUser?.role === 'superadmin') && (
+        <div className="space-y-2">
+          <Label htmlFor="employee_id">Assign Employee (Optional)</Label>
+          <Select 
+            value={formData.employee_id || 'none'} 
+            onValueChange={(value) => handleInputChange('employee_id', value === 'none' ? null : parseInt(value))}
+            disabled={submitting || loadingEmployees}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={loadingEmployees ? "Loading employees..." : "Select an employee"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">
+                <div className="flex items-center space-x-2">
+                  <span>No Employee Assignment</span>
+                </div>
+              </SelectItem>
+              {availableEmployees.map((employee) => (
+                <SelectItem key={employee.id} value={employee.id.toString()}>
+                  <div className="flex items-center space-x-2">
+                    {employee.is_current && <span className="text-green-500">●</span>}
+                    <span className={employee.is_current ? "text-green-600 font-medium" : ""}>
+                      {employee.employee_code} - {employee.first_name} {employee.last_name}
+                      {employee.is_current && " (Current)"}
+                    </span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {loadingEmployees && (
+            <p className="text-sm text-gray-500">Loading available employees...</p>
+          )}
+        </div>
+      )}
 
       {/* Role */}
       <div className="space-y-2">

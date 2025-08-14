@@ -6,6 +6,7 @@ import { useAuth } from '../../../hooks/useAuth.jsx';
 import { useUsers } from '../hooks/useUsers.js';
 import UserList from '../components/UserList.jsx';
 import UserModal from '../components/UserModal.jsx';
+import EmployeeAssignmentModal from '../components/EmployeeAssignmentModal.jsx';
 import { canManageUsers } from '../utils/roleUtils.js';
 
 const UserManagement = () => {
@@ -15,6 +16,11 @@ const UserManagement = () => {
   const [modalState, setModalState] = useState({
     isOpen: false,
     mode: 'create', // 'create', 'edit', 'delete'
+    user: null
+  });
+
+  const [assignmentModalState, setAssignmentModalState] = useState({
+    isOpen: false,
     user: null
   });
 
@@ -65,6 +71,68 @@ const UserManagement = () => {
 
   const handleToggleUserStatus = async (userId, isActive) => {
     await toggleUserStatus(userId, isActive);
+  };
+
+  // Employee Assignment handlers
+  const openAssignmentModal = (user) => {
+    setAssignmentModalState({ isOpen: true, user });
+  };
+
+  const closeAssignmentModal = () => {
+    setAssignmentModalState({ isOpen: false, user: null });
+  };
+
+  const handleAssignEmployee = async (userId, employeeId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/users/assign-employee', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          employee_id: employeeId
+        })
+      });
+
+      if (response.ok) {
+        // Refresh users list
+        window.location.reload(); // Simple refresh for now
+        closeAssignmentModal();
+      } else {
+        console.error('Failed to assign employee');
+      }
+    } catch (error) {
+      console.error('Error assigning employee:', error);
+    }
+  };
+
+  const handleUnassignEmployee = async (userId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/users/unassign-employee', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_id: userId
+        })
+      });
+
+      if (response.ok) {
+        // Refresh users list
+        window.location.reload(); // Simple refresh for now
+        closeAssignmentModal();
+      } else {
+        console.error('Failed to unassign employee');
+      }
+    } catch (error) {
+      console.error('Error unassigning employee:', error);
+    }
   };
 
   // Modal submit handler
@@ -121,13 +189,14 @@ const UserManagement = () => {
               onDelete={(user) => openModal('delete', user)}
               onCreateNew={() => openModal('create')}
               onToggleStatus={handleToggleUserStatus}
+              onEmployeeAssign={openAssignmentModal}
               loading={submitting}
             />
           )}
         </CardContent>
       </Card>
 
-      {/* Modal */}
+      {/* User Modal */}
       <UserModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
@@ -135,6 +204,16 @@ const UserManagement = () => {
         onSubmit={handleModalSubmit}
         submitting={submitting}
         mode={modalState.mode}
+      />
+
+      {/* Employee Assignment Modal */}
+      <EmployeeAssignmentModal
+        isOpen={assignmentModalState.isOpen}
+        onClose={closeAssignmentModal}
+        user={assignmentModalState.user}
+        onAssign={handleAssignEmployee}
+        onUnassign={handleUnassignEmployee}
+        loading={submitting}
       />
     </div>
   );

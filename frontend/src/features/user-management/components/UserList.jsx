@@ -7,7 +7,7 @@ import UserCard from './UserCard.jsx';
 import UserTable from './UserTable.jsx';
 import { AVAILABLE_ROLES, getRoleDisplayName, getRoleIcon } from '../utils/roleUtils.js';
 
-const UserList = ({ users, onEdit, onDelete, onCreateNew, onToggleStatus, loading }) => {
+const UserList = ({ users, onEdit, onDelete, onCreateNew, onToggleStatus, onEmployeeAssign, loading }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [sortBy, setSortBy] = useState('username');
@@ -186,6 +186,7 @@ const UserList = ({ users, onEdit, onDelete, onCreateNew, onToggleStatus, loadin
             onEdit={onEdit}
             onDelete={onDelete}
             onToggleStatus={onToggleStatus}
+            onEmployeeAssign={onEmployeeAssign}
             loading={loading}
           />
         )

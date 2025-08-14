@@ -31,7 +31,8 @@ def user_response(row) -> Dict[str, Any]:
         "role": row.role,
         "is_active": row.is_active,
         "created_at": row.created_at.isoformat() if row.created_at else None,
-        "last_login": row.last_login.isoformat() if row.last_login else None
+        "last_login": row.last_login.isoformat() if row.last_login else None,
+        "employee_id": getattr(row, 'employee_id', None)
     }
 
 @router.get("")
@@ -43,7 +44,7 @@ async def list_users(
     try:
         # Use raw SQL to avoid model conflicts
         result = db.execute(
-            text("SELECT id, username, email, role, is_active, created_at, last_login FROM users ORDER BY created_at DESC")
+            text("SELECT id, username, email, role, is_active, created_at, last_login, employee_id FROM users ORDER BY created_at DESC")
         ).fetchall()
         
         users = [user_response(row) for row in result]
@@ -102,7 +103,7 @@ async def create_user(
             
             # Return created user data directly for frontend compatibility
             new_user = db.execute(
-                text("SELECT id, username, email, role, is_active, created_at, last_login FROM users WHERE id = :id"),
+                text("SELECT id, username, email, role, is_active, created_at, last_login, employee_id FROM users WHERE id = :id"),
                 {"id": user_id}
             ).fetchone()
             
@@ -192,6 +193,48 @@ async def update_user(
         
         if hasattr(user_data, 'password') and user_data.password:
             updates["hashed_password"] = pwd_context.hash(user_data.password)
+        
+        # Handle employee_id assignment
+        if hasattr(user_data, 'employee_id'):
+            if user_data.employee_id is not None:
+                # Check if employee exists and is not already assigned
+                check_employee_query = text("""
+                    SELECT employee_id, user_id FROM hr_employees 
+                    WHERE employee_id = :employee_id
+                """)
+                employee_result = db.execute(check_employee_query, {"employee_id": user_data.employee_id})
+                employee = employee_result.fetchone()
+                
+                if not employee:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"Employee with ID {user_data.employee_id} not found"
+                    )
+                
+                if employee.user_id and employee.user_id != user_id:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Employee is already assigned to another user"
+                    )
+                
+                # Unassign previous employee if user had one
+                if existing_user.employee_id and existing_user.employee_id != user_data.employee_id:
+                    unassign_prev_query = text("UPDATE hr_employees SET user_id = NULL WHERE employee_id = :employee_id")
+                    db.execute(unassign_prev_query, {"employee_id": existing_user.employee_id})
+                
+                # Update employee assignment (only if not already assigned to this user)
+                if employee.user_id != user_id:
+                    update_employee_query = text("UPDATE hr_employees SET user_id = :user_id WHERE employee_id = :employee_id")
+                    db.execute(update_employee_query, {"user_id": user_id, "employee_id": user_data.employee_id})
+                
+                updates["employee_id"] = user_data.employee_id
+            else:
+                # Unassign employee if employee_id is None
+                if existing_user.employee_id:
+                    unassign_employee_query = text("UPDATE hr_employees SET user_id = NULL WHERE employee_id = :employee_id")
+                    db.execute(unassign_employee_query, {"employee_id": existing_user.employee_id})
+                
+                updates["employee_id"] = None
         
         # Use safe update function
         if updates:
@@ -321,6 +364,147 @@ async def change_user_password(
             detail=f"Failed to change password: {str(e)}"
         )
 
+# ===== Employee Assignment Endpoints (SystemAdmin only) =====
+
+@router.post("/assign-employee")
+async def assign_employee(
+    assignment: dict,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_superadmin)
+):
+    """Assign user to employee (SystemAdmin only)"""
+    try:
+        user_id = assignment.get("user_id")
+        employee_id = assignment.get("employee_id")
+        
+        if not user_id or not employee_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Both user_id and employee_id are required"
+            )
+
+        # Check if user exists
+        user_query = text("SELECT id, username, employee_id FROM users WHERE id = :user_id")
+        user_result = db.execute(user_query, {"user_id": user_id}).fetchone()
+        
+        if not user_result:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+            
+        if user_result.employee_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"User is already assigned to employee {user_result.employee_id}"
+            )
+
+        # Check if employee exists and is not already assigned
+        employee_query = text("""
+            SELECT employee_id, emp_code, first_name, last_name, user_id 
+            FROM hr_employees 
+            WHERE employee_id = :employee_id
+        """)
+        employee_result = db.execute(employee_query, {"employee_id": employee_id}).fetchone()
+        
+        if not employee_result:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Employee not found"
+            )
+            
+        if employee_result.user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Employee is already assigned to user {employee_result.user_id}"
+            )
+
+        # Create bidirectional assignment
+        update_user_query = text("UPDATE users SET employee_id = :employee_id WHERE id = :user_id")
+        update_employee_query = text("UPDATE hr_employees SET user_id = :user_id WHERE employee_id = :employee_id")
+        
+        db.execute(update_user_query, {"employee_id": employee_id, "user_id": user_id})
+        db.execute(update_employee_query, {"user_id": user_id, "employee_id": employee_id})
+        
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": f"Successfully assigned user {user_result.username} to employee {employee_result.emp_code}",
+            "assignment": {
+                "user_id": user_id,
+                "employee_id": employee_id,
+                "username": user_result.username,
+                "employee_code": employee_result.emp_code
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to assign employee: {str(e)}"
+        )
+
+@router.post("/unassign-employee")
+async def unassign_employee(
+    request: dict,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_superadmin)
+):
+    """Unassign user from employee (SystemAdmin only)"""
+    try:
+        user_id = request.get("user_id")
+        
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="user_id is required"
+            )
+
+        # Get current assignment
+        user_query = text("SELECT id, username, employee_id FROM users WHERE id = :user_id")
+        user_result = db.execute(user_query, {"user_id": user_id}).fetchone()
+        
+        if not user_result:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+            
+        if not user_result.employee_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User is not assigned to any employee"
+            )
+
+        # Remove bidirectional assignment
+        update_user_query = text("UPDATE users SET employee_id = NULL WHERE id = :user_id")
+        update_employee_query = text("UPDATE hr_employees SET user_id = NULL WHERE employee_id = :employee_id")
+        
+        db.execute(update_user_query, {"user_id": user_id})
+        db.execute(update_employee_query, {"employee_id": user_result.employee_id})
+        
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": f"Successfully unassigned user {user_result.username} from employee {user_result.employee_id}",
+            "user_id": user_id,
+            "username": user_result.username
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to unassign employee: {str(e)}"
+        )
+
 @router.get("/debug/schema")
 async def debug_schema(
     db: Session = Depends(get_db),
@@ -338,4 +522,41 @@ async def debug_schema(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to check schema: {str(e)}"
+        )
+
+@router.get("/employees/unassigned")
+async def get_unassigned_employees(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(require_admin_or_superadmin)
+):
+    """Get all employees that are not assigned to any user"""
+    try:
+        # Query for employees without user assignment using correct column names
+        query = text("""
+            SELECT employee_id, emp_code, first_name, last_name, department, position
+            FROM hr_employees 
+            WHERE user_id IS NULL AND active_status = true
+            ORDER BY emp_code
+        """)
+        
+        result = db.execute(query)
+        employees = result.fetchall()
+        
+        return [
+            {
+                "id": emp.employee_id,
+                "employee_code": emp.emp_code,
+                "first_name": emp.first_name,
+                "last_name": emp.last_name,
+                "department": emp.department,
+                "position": emp.position
+            }
+            for emp in employees
+        ]
+        
+    except Exception as e:
+        print(f"Error fetching unassigned employees: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch unassigned employees: {str(e)}"
         )

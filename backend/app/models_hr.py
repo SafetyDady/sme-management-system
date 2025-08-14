@@ -13,7 +13,7 @@ class HREmployee(Base):
     
     employee_id = Column(Integer, primary_key=True, index=True)
     emp_code = Column(String(20), unique=True, index=True, nullable=False)
-    user_id = Column(String, ForeignKey("users.id"), nullable=True)  # Optional link to user account
+    user_id = Column(String, ForeignKey("users.id"), unique=True, nullable=True)  # One-to-One relationship
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
     position = Column(String(100), nullable=True)

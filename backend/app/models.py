@@ -11,11 +11,13 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
-    role = Column(String, default="user", nullable=False)  # superadmin, admin1, admin2, user
+    role = Column(String, default="user", nullable=False)  # superadmin, admin, hr, user
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     last_login = Column(DateTime, nullable=True)
-    # Employee profile fields removed - now stored in hr_employees table
+    
+    # Bidirectional One-to-One relationship with hr_employees
+    employee_id = Column(Integer, unique=True, nullable=True)  # Foreign Key to hr_employees.employee_id
     
     # Relationship to password reset tokens
     password_reset_tokens = relationship("PasswordResetToken", back_populates="user", cascade="all, delete-orphan")

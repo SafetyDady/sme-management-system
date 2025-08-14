@@ -1,12 +1,14 @@
 // Role-specific dashboard exports
-export { default as DirectorDashboard } from './DirectorDashboard.jsx';
-export { default as SuperAdminDashboard } from './SuperAdminDashboard.jsx';
-export { default as ManagerDashboard } from './ManagerDashboard.jsx';
-export { default as HRDashboard } from './HRDashboard.jsx';
-export { default as SupervisorDashboard } from './SupervisorDashboard.jsx';
-export { default as EngineerDashboard } from './EngineerDashboard.jsx';
-export { default as PurchasingDashboard } from './PurchasingDashboard.jsx';
-export { default as StoreDashboard } from './StoreDashboard.jsx';
-export { default as AccountingDashboard } from './AccountingDashboard.jsx';
-export { default as EmployeeDashboard } from './EmployeeDashboard.jsx';
-export { default as ClientDashboard } from './ClientDashboard.jsx';
+export { default as DirectorDashboard } from './DirectorDashboard'
+export { default as SuperAdminDashboard } from './SuperAdminDashboard'
+export { default as SystemAdminDashboard } from './SystemAdminDashboard'
+export { default as AdminDashboard } from './AdminDashboard'
+export { default as ManagerDashboard } from './ManagerDashboard'
+export { default as HRDashboard } from './HRDashboard'
+export { default as AccountingDashboard } from './AccountingDashboard'
+export { default as SupervisorDashboard } from './SupervisorDashboard'
+export { default as EngineerDashboard } from './EngineerDashboard'
+export { default as PurchasingDashboard } from './PurchasingDashboard'
+export { default as StoreDashboard } from './StoreDashboard'
+export { default as EmployeeDashboard } from './EmployeeDashboard'
+export { default as ClientDashboard } from './ClientDashboard'

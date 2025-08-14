@@ -152,6 +152,7 @@ class UserUpdate(BaseModel):
     password: Optional[str] = Field(None, min_length=6, max_length=128)
     role: Optional[Literal["user", "admin", "superadmin", "hr"]] = Field(None, description="User role")
     is_active: Optional[bool] = None
+    employee_id: Optional[int] = Field(None, description="Employee ID for assignment")
     # Employee fields (all optional)
     employee_code: Optional[str] = Field(None, max_length=30)
     department: Optional[str] = Field(None, max_length=100)
@@ -356,4 +357,51 @@ class EmployeeRecord(BaseModel):
 
     class Config:
         from_attributes = True
+
+# ===== SystemAdmin User-Employee Assignment Schemas =====
+class UserEmployeeAssignRequest(BaseModel):
+    """Schema for SystemAdmin to assign user to employee"""
+    user_id: str = Field(..., description="User ID to assign")
+    employee_id: int = Field(..., description="Employee ID to assign to")
+
+class UserEmployeeUnassignRequest(BaseModel):
+    """Schema for SystemAdmin to unassign user from employee"""
+    user_id: str = Field(..., description="User ID to unassign")
+
+class UserWithEmployee(BaseModel):
+    """User with their assigned employee information"""
+    id: str
+    username: str
+    role: str
+    is_active: bool
+    created_at: datetime
+    employee_id: Optional[int]
+    employee: Optional[EmployeeRecord] = None
+    
+    class Config:
+        from_attributes = True
+
+class EmployeeWithUser(BaseModel):
+    """Employee with their assigned user information"""
+    employee_id: int
+    emp_code: str
+    first_name: str
+    last_name: str
+    position: Optional[str]
+    department: Optional[str]
+    start_date: Optional[datetime]
+    employment_type: Optional[str]
+    active_status: bool
+    user_id: Optional[str]
+    user: Optional[dict] = None  # Basic user info without sensitive data
+    
+    class Config:
+        from_attributes = True
+
+class AssignmentResponse(BaseModel):
+    """Response for assignment operations"""
+    success: bool
+    message: str
+    user_id: Optional[str] = None
+    employee_id: Optional[int] = None
 

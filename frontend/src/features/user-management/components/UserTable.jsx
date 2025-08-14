@@ -11,12 +11,15 @@ import {
   Crown,
   Shield,
   Users,
-  User
+  User,
+  UserCheck,
+  UserX,
+  Link
 } from 'lucide-react';
 import { getRoleDisplayName, getRoleIcon, getRoleColor, canEditRole } from '../utils/roleUtils.js';
 import { useAuth } from '../../../hooks/useAuth.jsx';
 
-const UserTable = ({ users, onEdit, onDelete, onToggleStatus, loading }) => {
+const UserTable = ({ users, onEdit, onDelete, onToggleStatus, onEmployeeAssign, loading }) => {
   const { user: currentUser } = useAuth();
 
   const getRoleIconComponent = (role) => {
@@ -52,6 +55,9 @@ const UserTable = ({ users, onEdit, onDelete, onToggleStatus, loading }) => {
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Role
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Employee Assignment
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Status
@@ -103,6 +109,33 @@ const UserTable = ({ users, onEdit, onDelete, onToggleStatus, loading }) => {
                   </Badge>
                 </td>
 
+                {/* Employee Assignment */}
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center space-x-2">
+                    {user.employee_id ? (
+                      <>
+                        <UserCheck className="h-4 w-4 text-green-600" />
+                        <div className="text-sm">
+                          <span className="text-gray-900 font-medium">Employee #{user.employee_id}</span>
+                          <Badge variant="outline" className="ml-1 text-green-600 border-green-200">
+                            Assigned
+                          </Badge>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <UserX className="h-4 w-4 text-gray-400" />
+                        <div className="text-sm">
+                          <span className="text-gray-500">Not assigned</span>
+                          <Badge variant="outline" className="ml-1 text-gray-500">
+                            Unassigned
+                          </Badge>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </td>
+
                 {/* Status */}
                 <td className="px-6 py-4 whitespace-nowrap">
                   <Badge 
@@ -132,6 +165,19 @@ const UserTable = ({ users, onEdit, onDelete, onToggleStatus, loading }) => {
                 {/* Actions */}
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex items-center justify-end space-x-2">
+                    {/* Employee Assignment Button (SystemAdmin only) */}
+                    {currentUser?.role === 'system_admin' && onEmployeeAssign && (
+                      <Button
+                        variant="outline"
+                        size="xs"
+                        onClick={() => onEmployeeAssign(user)}
+                        className="h-6 px-2 flex items-center space-x-1 text-xs hover:bg-purple-50 hover:text-purple-600 hover:border-purple-300"
+                      >
+                        <Link className="h-3 w-3" />
+                        <span>Employee</span>
+                      </Button>
+                    )}
+
                     {/* Toggle Status Button */}
                     {canToggleStatus && (
                       <Button

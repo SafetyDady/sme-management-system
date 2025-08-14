@@ -46,7 +46,7 @@ if not DATABASE_URL:
 print(f"Final Database URL: {DATABASE_URL}")
 
 # Validate URL format
-if not DATABASE_URL.startswith("postgresql://"):
+if not (DATABASE_URL.startswith("postgresql://") or DATABASE_URL.startswith("sqlite:///")):
     raise ValueError(f"Invalid DATABASE_URL format: {DATABASE_URL}")
 
 engine = create_engine(DATABASE_URL)
