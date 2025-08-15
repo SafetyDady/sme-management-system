@@ -1,0 +1,85 @@
+{  "roles": {
+    "superadmin": {
+      "name": "Super Admin",
+      "level": 5,
+      "permissions": ["*"]
+    },
+    "director": {
+      "name": "Director",
+      "level": 4,
+      "permissions": ["*"]
+    },
+    "system_admin": {
+      "name": "System Admin",
+      "level": 4,
+      "permissions": [
+        "user.view", "user.create", "user.edit", "user.delete",
+        "employee.view", "employee.create", "employee.edit", "employee.delete",
+        "user_assignment.view", "user_assignment.create", "user_assignment.edit",
+        "system.settings.view", "system.settings.edit"
+      ]
+    },
+    "admin": {
+      "name": "Admin",
+      "level": 3,
+      "permissions": [
+        "user.view", "user.create", "user.edit", "user.delete",
+        "employee.view", "employee.create", "employee.edit", "employee.delete",
+        "hr.leave.view", "hr.leave.approve",
+        "system.settings.view"
+      ]
+    },  "superadmin": {
+      "name": "Super Admin",
+      "level": 4,
+      "permissions": ["*"]
+    },
+    "system_admin": {
+      "name": "System Admin",
+      "level": 3,
+      "permissions": [
+        "user.view", "user.create", "user.edit", "user.delete",
+        "employee.view", "employee.create", "employee.edit", "employee.delete",
+        "hr.leave.view", "hr.leave.approve",
+        "system.settings.view"
+      ]
+    },
+    "admin": {
+      "name": "Admin",
+      "level": 3,
+      "permissions": [
+        "user.view", "user.create", "user.edit", "user.delete",
+        "employee.view", "employee.create", "employee.edit", "employee.delete",
+        "hr.leave.view", "hr.leave.approve",
+        "system.settings.view"
+      ]
+    },
+    "hr": {
+      "name": "HR Manager",
+      "level": 2,
+      "permissions": [
+        "employee.view", "employee.create", "employee.edit", "employee.delete",
+        "user.view", "user.create", "user.edit",
+        "hr.leave.view", "hr.leave.create", "hr.leave.edit", "hr.leave.approve",
+        "hr.daily.view", "hr.daily.approve",
+        "hr.reports.view"
+      ]
+    },
+    "user": {
+      "name": "Employee",
+      "level": 1,
+      "permissions": [
+        "profile.view", "profile.edit",
+        "hr.leave.view", "hr.leave.create",
+        "hr.daily.view", "hr.daily.create"
+      ]
+    }
+  },
+  "role_mapping": {
+    "superadmin": "superadmin",
+    "system_admin": "system_admin",
+    "admin": "admin", 
+    "hr": "hr",
+    "user": "user",
+    "employee": "user"
+  }
+}

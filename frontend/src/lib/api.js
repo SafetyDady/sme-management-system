@@ -239,7 +239,8 @@ export const userAPI = {
   getUsers: async () => {
     console.log('🔍 Calling userAPI.getUsers()...');
     try {
-      const response = await api.get('/api/users/');
+      // Use /api/users (without trailing slash) to avoid 307 redirects
+      const response = await api.get('/api/users');
       console.log('✅ Users API Success:', response.data);
       return response.data;
     } catch (error) {
@@ -256,19 +257,19 @@ export const userAPI = {
   createUser: async (userData) => {
     console.log('🔍 Creating user with data:', userData);
     
-    // Ensure required fields are present - ย้ายออกมานอก try block
+    // Ensure required fields are present and clean
     const cleanUserData = {
       username: userData.username?.trim(),
       email: userData.email?.trim()?.toLowerCase(),
       password: userData.password,
-      role: userData.role || 'user',
-      is_active: userData.is_active !== undefined ? userData.is_active : true
+      role: userData.role || 'user'
+      // ลบ is_active ออก ให้ backend จัดการเอง
     };
     
     console.log('🔍 Clean user data:', cleanUserData);
     
     try {
-      const response = await api.post('/api/users/', cleanUserData);
+      const response = await api.post('/api/users', cleanUserData);
       console.log('✅ Create user success:', response.data);
       return response.data;
     } catch (error) {
@@ -306,7 +307,8 @@ export const userAPI = {
   toggleUserStatus: async (userId, isActive) => {
     console.log('🔍 Toggling user status:', userId, isActive);
     try {
-      const response = await api.patch(`/api/users/${userId}/status`, { is_active: isActive });
+      // Use the existing PUT endpoint with only is_active field
+      const response = await api.put(`/api/users/${userId}`, { is_active: isActive });
       console.log('✅ Toggle status success:', response.data);
       return response.data;
     } catch (error) {
@@ -347,6 +349,86 @@ export const userAPI = {
       return response.data;
     } catch (error) {
       console.error('❌ Change password error:', error);
+      throw error;
+    }
+  }
+};
+
+// Employee Management API
+export const employeeAPI = {
+  getEmployees: async () => {
+    console.log('🔍 Calling employeeAPI.getEmployees()...');
+    try {
+      const response = await api.get('/api/employees');
+      console.log('✅ Employees API Success:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Employees API Error:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
+      throw error;
+    }
+  },
+
+  createEmployee: async (employeeData) => {
+    console.log('🔍 Creating employee:', employeeData);
+    try {
+      const response = await api.post('/api/employees', employeeData);
+      console.log('✅ Create employee success:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Create employee error:', error);
+      throw error;
+    }
+  },
+
+  updateEmployee: async (employeeId, employeeData) => {
+    console.log('🔍 Updating employee:', employeeId, employeeData);
+    try {
+      const response = await api.put(`/api/employees/${employeeId}`, employeeData);
+      console.log('✅ Update employee success:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Update employee error:', error);
+      throw error;
+    }
+  },
+
+  deleteEmployee: async (employeeId) => {
+    console.log('🔍 Deleting employee:', employeeId);
+    try {
+      const response = await api.delete(`/api/employees/${employeeId}`);
+      console.log('✅ Delete employee success:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Delete employee error:', error);
+      throw error;
+    }
+  },
+
+  toggleEmployeeStatus: async (employeeId, isActive) => {
+    console.log('🔍 Toggling employee status:', employeeId, isActive);
+    try {
+      const response = await api.put(`/api/employees/${employeeId}`, { is_active: isActive });
+      console.log('✅ Toggle employee status success:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Toggle employee status error:', error);
+      throw error;
+    }
+  },
+
+  getEmployeeProfile: async (employeeId) => {
+    console.log('🔍 Getting employee profile:', employeeId);
+    try {
+      const response = await api.get(`/api/employees/${employeeId}`);
+      console.log('✅ Get employee profile success:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Get employee profile error:', error);
       throw error;
     }
   }

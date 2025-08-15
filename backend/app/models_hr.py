@@ -13,16 +13,19 @@ class HREmployee(Base):
     
     employee_id = Column(Integer, primary_key=True, index=True)
     emp_code = Column(String(20), unique=True, index=True, nullable=False)
-    user_id = Column(String, ForeignKey("users.id"), nullable=True)  # Optional link to user account
+    user_id = Column(String, ForeignKey("users.id"), unique=True, nullable=True)  # One-to-One relationship
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
     position = Column(String(100), nullable=True)
     department = Column(String(100), nullable=True, index=True)
     start_date = Column(Date, nullable=True)
     employment_type = Column(String(30), nullable=True)  # e.g. fulltime, parttime, contract, daily
-    salary_base = Column(Numeric(10, 2), nullable=True)  # Monthly or agreed base depending on employment_type
+    salary_monthly = Column(Numeric(10, 2), nullable=True)  # Monthly salary
+    wage_daily = Column(Numeric(8, 2), nullable=True)  # Daily wage
     active_status = Column(Boolean, default=True, index=True)
     contact_phone = Column(String(20), nullable=True)
+    contact_address = Column(String, nullable=True)  # Missing in original model
+    note = Column(String, nullable=True)  # Missing in original model
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_by = Column(String, ForeignKey("users.id"), nullable=True)

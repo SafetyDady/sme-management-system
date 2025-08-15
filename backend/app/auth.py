@@ -156,19 +156,11 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     token = credentials.credentials
     username = verify_token(token)
     
-    # Try safe user model first (for backward compatibility)
+    # Use ONLY safe user query (no fallback to User model)
     user = safe_get_user_by_username(db, username)
     
     if user is None:
-        # Fallback to regular User model if safe query fails
-        try:
-            from .models import User
-            user = db.query(User).filter(User.username == username).first()
-        except Exception as e:
-            logger.error(f"User query failed: {e}")
-            user = None
-    
-    if user is None:
+        logger.error(f"User not found: {username}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found",

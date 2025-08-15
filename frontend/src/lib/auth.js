@@ -3,7 +3,17 @@ import Cookies from 'js-cookie';
 // Inline role configuration to avoid import issues
 const ROLES_CONFIG = {
   "roles": {
+    "director": { "name": "Director", "level": 5, "permissions": ["*"] },
     "superadmin": { "name": "Super Admin", "level": 4, "permissions": ["*"] },
+    "system_admin": { 
+      "name": "System Admin", 
+      "level": 3,
+      "permissions": [
+        "user.view", "user.create", "user.edit", "user.delete",
+        "employee.view", "employee.create", "employee.edit", "employee.delete",
+        "hr.leave.view", "hr.leave.approve", "system.settings.view"
+      ]
+    },
     "admin": { 
       "name": "Admin", 
       "level": 3,
@@ -13,8 +23,19 @@ const ROLES_CONFIG = {
         "hr.leave.view", "hr.leave.approve", "system.settings.view"
       ]
     },
+    "manager": {
+      "name": "Manager", 
+      "level": 2,
+      "permissions": [
+        "employee.view", "employee.edit",
+        "user.view", "user.edit",
+        "hr.leave.view", "hr.leave.approve",
+        "hr.daily.view", "hr.daily.approve", "hr.reports.view"
+      ]
+    },
     "hr": {
-      "name": "HR Manager", "level": 2,
+      "name": "HR Manager", 
+      "level": 2,
       "permissions": [
         "employee.view", "employee.create", "employee.edit", "employee.delete",
         "user.view", "user.create", "user.edit",
@@ -22,14 +43,86 @@ const ROLES_CONFIG = {
         "hr.daily.view", "hr.daily.approve", "hr.reports.view"
       ]
     },
+    "supervisor": {
+      "name": "Supervisor", 
+      "level": 2,
+      "permissions": [
+        "employee.view", "employee.edit",
+        "hr.leave.view", "hr.leave.approve",
+        "hr.daily.view", "hr.daily.approve"
+      ]
+    },
+    "engineer": {
+      "name": "Engineer", 
+      "level": 1,
+      "permissions": [
+        "profile.view", "profile.edit", 
+        "hr.leave.view", "hr.leave.create", 
+        "hr.daily.view", "hr.daily.create",
+        "technical.view", "technical.edit"
+      ]
+    },
+    "purchasing": {
+      "name": "Purchasing", 
+      "level": 1,
+      "permissions": [
+        "profile.view", "profile.edit", 
+        "hr.leave.view", "hr.leave.create", 
+        "hr.daily.view", "hr.daily.create",
+        "purchasing.view", "purchasing.edit"
+      ]
+    },
+    "store": {
+      "name": "Store", 
+      "level": 1,
+      "permissions": [
+        "profile.view", "profile.edit", 
+        "hr.leave.view", "hr.leave.create", 
+        "hr.daily.view", "hr.daily.create",
+        "inventory.view", "inventory.edit"
+      ]
+    },
+    "accounting": {
+      "name": "Accounting", 
+      "level": 1,
+      "permissions": [
+        "profile.view", "profile.edit", 
+        "hr.leave.view", "hr.leave.create", 
+        "hr.daily.view", "hr.daily.create",
+        "finance.view", "finance.edit"
+      ]
+    },
+    "employee": {
+      "name": "Employee", 
+      "level": 1,
+      "permissions": ["profile.view", "profile.edit", "hr.leave.view", "hr.leave.create", "hr.daily.view", "hr.daily.create"]
+    },
+    "client": {
+      "name": "Client", 
+      "level": 0,
+      "permissions": ["profile.view", "profile.edit", "orders.view"]
+    },
     "user": {
-      "name": "Employee", "level": 1,
+      "name": "User", 
+      "level": 1,
       "permissions": ["profile.view", "profile.edit", "hr.leave.view", "hr.leave.create", "hr.daily.view", "hr.daily.create"]
     }
   },
   "role_mapping": {
-    "superadmin": "superadmin", "admin1": "admin", "admin2": "admin", 
-    "hr": "hr", "user": "user", "employee": "user"
+    "director": "director",
+    "superadmin": "superadmin", 
+    "system_admin": "system_admin",
+    "admin": "admin",
+    "manager": "manager",
+    "hr": "hr", 
+    "supervisor": "supervisor",
+    "engineer": "engineer",
+    "purchasing": "purchasing",
+    "store": "store",
+    "accounting": "accounting",
+    "employee": "employee",
+    "client": "client",
+    "user": "user"
   }
 };
 
@@ -149,19 +242,44 @@ export const getRedirectPath = (role) => {
   const normalizedRole = normalizeRole(role);
   console.log('🔀 Redirect path for role:', { originalRole: role, normalizedRole });
   
+  // Role-specific dashboard routes based on your specification
   switch (normalizedRole) {
     case 'superadmin':
-      console.log('➡️ Redirecting superadmin to /dashboard');
-      return '/dashboard';
+      console.log('➡️ Redirecting superadmin to /superadmin/dashboard');
+      return '/superadmin/dashboard';
+    case 'director':
+      console.log('➡️ Redirecting director to /director/dashboard');
+      return '/director/dashboard';
+    case 'system_admin':
+      console.log('➡️ Redirecting system_admin to /admin/dashboard');
+      return '/admin/dashboard';
     case 'admin':
-      console.log('➡️ Redirecting admin to /dashboard');
-      return '/dashboard';
+      console.log('➡️ Redirecting admin to /admin/dashboard');
+      return '/admin/dashboard';
+    case 'manager':
+      console.log('➡️ Redirecting manager to /manager/dashboard');
+      return '/manager/dashboard';
+    case 'supervisor':
+      console.log('➡️ Redirecting supervisor to /supervisor/dashboard');
+      return '/supervisor/dashboard';
+    case 'engineer':
+      console.log('➡️ Redirecting engineer to /engineer/dashboard');
+      return '/engineer/dashboard';
+    case 'purchasing':
+      console.log('➡️ Redirecting purchasing to /purchasing/dashboard');
+      return '/purchasing/dashboard';
+    case 'store':
+      console.log('➡️ Redirecting store to /store/dashboard');
+      return '/store/dashboard';
     case 'hr':
-      console.log('➡️ Redirecting hr to /hr');
-      return '/hr';  // Direct to HR dashboard
+      console.log('➡️ Redirecting hr to /hr/dashboard');
+      return '/hr/dashboard';
+    case 'employee':
+      console.log('➡️ Redirecting employee to /employee/dashboard');
+      return '/employee/dashboard';
     case 'user':
-      console.log('➡️ Redirecting user to /dashboard');
-      return '/dashboard';
+      console.log('➡️ Redirecting user to /employee/dashboard');
+      return '/employee/dashboard';
     default:
       console.log('➡️ Unknown role, redirecting to /login');
       return '/login';

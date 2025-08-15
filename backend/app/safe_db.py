@@ -20,6 +20,7 @@ class SafeUser:
         self.is_active = kwargs.get('is_active', True)
         self.created_at = kwargs.get('created_at')
         self.last_login = kwargs.get('last_login')
+        self.employee_id = kwargs.get('employee_id')
 
 def safe_get_user_by_username(db: Session, username: str) -> Optional[SafeUser]:
     """
@@ -30,7 +31,7 @@ def safe_get_user_by_username(db: Session, username: str) -> Optional[SafeUser]:
         result = db.execute(
             text("""
             SELECT id, username, email, hashed_password, role, is_active, 
-                   created_at, last_login 
+                   created_at, last_login, employee_id
             FROM users 
             WHERE username = :username 
             LIMIT 1
@@ -47,7 +48,8 @@ def safe_get_user_by_username(db: Session, username: str) -> Optional[SafeUser]:
                 role=result.role,
                 is_active=result.is_active,
                 created_at=result.created_at,
-                last_login=result.last_login
+                last_login=result.last_login,
+                employee_id=result.employee_id
             )
         return None
         
@@ -57,35 +59,29 @@ def safe_get_user_by_username(db: Session, username: str) -> Optional[SafeUser]:
 
 def safe_get_user_by_id(db: Session, user_id: str) -> Optional[SafeUser]:
     """
-    Safely get user by id using raw SQL
+    Safely get user by ID with minimal data exposure
     """
     try:
         result = db.execute(
-            text("""
-            SELECT id, username, email, hashed_password, role, is_active, 
-                   created_at, last_login 
-            FROM users 
-            WHERE id = :user_id 
-            LIMIT 1
-            """),
+            text("SELECT id, username, email, role, is_active, created_at, last_login, employee_id FROM users WHERE id = :user_id"),
             {"user_id": user_id}
-        ).fetchone()
+        )
+        row = result.fetchone()
         
-        if result:
+        if row:
             return SafeUser(
-                id=result.id,
-                username=result.username,
-                email=result.email,
-                hashed_password=result.hashed_password,
-                role=result.role,
-                is_active=result.is_active,
-                created_at=result.created_at,
-                last_login=result.last_login
+                id=row.id,
+                username=row.username,
+                email=row.email,
+                role=row.role,
+                is_active=row.is_active,
+                created_at=row.created_at,
+                last_login=row.last_login,
+                employee_id=row.employee_id
             )
         return None
-        
     except Exception as e:
-        print(f"Safe user by id query failed: {e}")
+        print(f"Safe user fetch by ID failed: {e}")
         return None
 
 def safe_check_user_exists(db: Session, username: str = None, email: str = None) -> bool:
@@ -127,7 +123,7 @@ def safe_update_user(db: Session, user_id: str, updates: Dict[str, Any]) -> bool
         params = {"user_id": user_id}
         
         for key, value in updates.items():
-            if key in ['username', 'email', 'role', 'is_active', 'hashed_password', 'last_login']:
+            if key in ['username', 'email', 'role', 'is_active', 'hashed_password', 'last_login', 'employee_id']:
                 set_clauses.append(f"{key} = :{key}")
                 params[key] = value
         
@@ -143,6 +139,23 @@ def safe_update_user(db: Session, user_id: str, updates: Dict[str, Any]) -> bool
     except Exception as e:
         db.rollback()
         print(f"Safe user update failed: {e}")
+        return False
+
+def safe_delete_user(db: Session, user_id: str) -> bool:
+    """
+    Safely delete user by ID
+    """
+    try:
+        result = db.execute(
+            text("DELETE FROM users WHERE id = :user_id"),
+            {"user_id": user_id}
+        )
+        db.commit()
+        return result.rowcount > 0
+        
+    except Exception as e:
+        db.rollback()
+        print(f"Safe user delete failed: {e}")
         return False
 
 def check_table_schema(db: Session) -> Dict[str, Any]:

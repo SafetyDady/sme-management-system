@@ -3,14 +3,19 @@ import { useAuth } from '../../hooks/useAuth.jsx';
 import { 
   Menu, 
   X, 
+  Home, 
   Users, 
-  UserPlus, 
-  Calendar, 
-  FileText,
-  BarChart3,
-  Settings,
+  User, 
+  Settings, 
   LogOut,
-  Bell
+  Shield,
+  BarChart3,
+  Bell,
+  Calendar,
+  Clock,
+  UserPlus,
+  FileText,
+  Building
 } from 'lucide-react';
 import { Button } from '../ui/button.jsx';
 import { Avatar, AvatarFallback } from '../ui/avatar.jsx';
@@ -22,44 +27,66 @@ const HRLayout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const hrNavigationItems = [
-    {
-      name: 'HR Dashboard',
-      href: '/hr',
-      icon: BarChart3,
-      description: 'Overview & Statistics'
-    },
-    {
-      name: 'Employee Management',
-      href: '/hr/employees',
-      icon: Users,
-      description: 'Manage Staff Records'
-    },
-    {
-      name: 'Recruitment',
-      href: '/hr/recruitment',
-      icon: UserPlus,
-      description: 'Hiring & Onboarding'
-    },
-    {
-      name: 'Leave Management',
-      href: '/hr/leaves',
-      icon: Calendar,
-      description: 'Time Off Requests'
-    },
-    {
-      name: 'HR Reports',
-      href: '/hr/reports',
-      icon: FileText,
-      description: 'Analytics & Reports'
-    },
-    {
-      name: 'HR Settings',
-      href: '/hr/settings',
-      icon: Settings,
-      description: 'Policies & Configuration'
-    }
-  ];
+  const getHRNavigationItems = () => {
+    return [
+      {
+        name: 'HR Dashboard',
+        href: '/hr/dashboard',
+        icon: Home,
+        description: 'HR-specific dashboard'
+      },
+      {
+        name: 'General Dashboard',
+        href: '/dashboard',
+        icon: Home,
+        description: 'General system dashboard'
+      },
+      {
+        name: 'Legacy HR Dashboard',
+        href: '/hr',
+        icon: Building,
+        description: 'HR overview and metrics'
+      },
+      {
+        name: 'Employee Management',
+        href: '/hr/employees',
+        icon: Users,
+        description: 'Manage employee records'
+      },
+      {
+        name: 'Leave Management',
+        href: '/hr/leaves',
+        icon: Calendar,
+        description: 'Approve/reject leaves'
+      },
+      {
+        name: 'Recruitment',
+        href: '/hr/recruitment',
+        icon: UserPlus,
+        description: 'Hiring and recruitment'
+      },
+      {
+        name: 'HR Reports',
+        href: '/hr/reports',
+        icon: FileText,
+        description: 'Generate HR reports'
+      },
+      {
+        name: 'Department Management',
+        href: '/hr/departments',
+        icon: Building,
+        description: 'Manage departments'
+      },
+      {
+        name: 'My Profile',
+        href: '/profile',
+        icon: User,
+        description: 'Personal profile settings'
+      }
+    ];
+  };
+
+  const navigationItems = getHRNavigationItems();
 
   const handleLogout = () => {
     logout();
@@ -90,15 +117,25 @@ const HRLayout = ({ children }) => {
             <h1 className="text-xl font-bold text-white">
               🏢 GC Management
             </h1>
-            <span className="ml-2 text-sm text-green-200">HR Dashboard</span>
+            <span className="ml-2 text-sm text-green-200">HR Portal</span>
           </div>
 
           <div className="flex items-center space-x-4">
+            {/* HR Quick Stats */}
+            <div className="hidden md:flex items-center space-x-4">
+              <div className="text-xs text-green-100">
+                <span className="font-semibold">12</span> Employees
+              </div>
+              <div className="text-xs text-green-100">
+                <span className="font-semibold">3</span> Pending
+              </div>
+            </div>
+
             {/* Notification Bell */}
             <Button variant="ghost" className="relative text-white hover:bg-green-700">
               <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                2
+              <span className="absolute -top-1 -right-1 h-4 w-4 bg-orange-500 rounded-full text-xs text-white flex items-center justify-center">
+                5
               </span>
             </Button>
             
@@ -118,16 +155,16 @@ const HRLayout = ({ children }) => {
         </div>
       </div>
 
-      {/* HR Sidebar */}
+      {/* Sidebar - HR Theme */}
       <div className={`
-        fixed inset-y-0 left-0 z-40 w-72 bg-gradient-to-b from-green-700 to-green-900 shadow-lg transform transition-transform duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-green-700 to-blue-800 shadow-lg transform transition-transform duration-300 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         mt-16
       `}>
         <div className="flex flex-col h-full">
-          {/* HR Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-1">
-            {hrNavigationItems.map((item) => {
+          {/* Navigation */}
+          <nav className="flex-1 px-4 py-6 space-y-2">
+            {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.href;
               
@@ -136,19 +173,25 @@ const HRLayout = ({ children }) => {
                   key={item.name}
                   to={item.href}
                   className={`
-                    flex flex-col px-4 py-3 text-sm rounded-lg transition-all duration-200
+                    flex flex-col px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 group
                     ${isActive 
-                      ? 'bg-white bg-opacity-20 text-white shadow-lg border-l-4 border-white' 
-                      : 'text-green-100 hover:bg-white hover:bg-opacity-10 hover:text-white hover:translate-x-1'
+                      ? 'bg-green-600 bg-opacity-90 text-white shadow-lg border border-green-400' 
+                      : 'text-green-100 hover:bg-green-700 hover:bg-opacity-70 hover:text-white font-medium hover:shadow-md'
                     }
                   `}
                   onClick={() => setSidebarOpen(false)}
                 >
                   <div className="flex items-center">
-                    <Icon className="mr-3 h-5 w-5" />
-                    <span className="font-medium">{item.name}</span>
+                    <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-white' : 'group-hover:text-white'}`} />
+                    <span className={`${isActive ? 'text-white font-bold' : 'group-hover:text-white group-hover:font-semibold'}`}>
+                      {item.name}
+                    </span>
                   </div>
-                  <span className="text-xs text-green-200 ml-8 mt-1">
+                  <span className={`text-xs ml-8 mt-1 ${
+                    isActive 
+                      ? 'text-green-100 font-semibold' 
+                      : 'text-green-200 group-hover:text-green-100 group-hover:font-medium'
+                  }`}>
                     {item.description}
                   </span>
                 </Link>
@@ -156,7 +199,7 @@ const HRLayout = ({ children }) => {
             })}
           </nav>
 
-          {/* User info and logout at bottom */}
+          {/* HR info and logout at bottom */}
           <div className="p-4 border-t border-green-600">
             <div className="flex items-center mb-3">
               <Avatar className="h-10 w-10 border-2 border-green-400">
@@ -168,11 +211,24 @@ const HRLayout = ({ children }) => {
                 <p className="text-sm font-medium text-white truncate">
                   {user?.username}
                 </p>
-                <p className="text-xs text-green-200 capitalize">
-                  HR Manager
+                <p className="text-xs text-green-200">
+                  HR Manager - Employee Access
                 </p>
               </div>
             </div>
+
+            {/* HR Quick Actions */}
+            <div className="space-y-2 mb-3">
+              <Button 
+                size="sm"
+                variant="ghost" 
+                className="w-full justify-start text-green-100 hover:text-white hover:bg-white hover:bg-opacity-10"
+              >
+                <Clock className="mr-2 h-4 w-4" />
+                Pending Leaves
+              </Button>
+            </div>
+
             <Button 
               onClick={handleLogout} 
               variant="ghost" 
@@ -186,7 +242,7 @@ const HRLayout = ({ children }) => {
       </div>
 
       {/* Main content */}
-      <div className={`transition-all duration-300 ease-in-out pt-16 ${sidebarOpen ? 'lg:pl-72' : 'lg:pl-0'}`}>
+      <div className={`transition-all duration-300 ease-in-out pt-16 ${sidebarOpen ? 'lg:pl-64' : 'lg:pl-0'}`}>
         <main className="p-4 sm:p-6">
           {children}
         </main>

@@ -2,7 +2,7 @@
 Enhanced Pydantic schemas with comprehensive validation
 """
 from pydantic import BaseModel, validator, Field
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Literal
 from datetime import datetime
 import re
 from email_validator import validate_email, EmailNotValidError
@@ -56,7 +56,7 @@ class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     email: str = Field(..., description="Valid email address")
     password: str = Field(..., min_length=8, max_length=128)
-    role: str = Field(default="user", pattern="^(user|admin|admin1|admin2|superadmin|hr|manager)$")
+    role: Literal["user", "admin", "superadmin", "hr"] = Field(default="user", description="User role")
     
     @validator('username')
     def validate_username(cls, v):
@@ -150,8 +150,9 @@ class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50)
     email: Optional[str] = None
     password: Optional[str] = Field(None, min_length=6, max_length=128)
-    role: Optional[str] = Field(None, pattern="^(user|admin|admin1|admin2|superadmin|hr|manager)$")
+    role: Optional[Literal["user", "admin", "superadmin", "hr"]] = Field(None, description="User role")
     is_active: Optional[bool] = None
+    employee_id: Optional[int] = Field(None, description="Employee ID for assignment")
     # Employee fields (all optional)
     employee_code: Optional[str] = Field(None, max_length=30)
     department: Optional[str] = Field(None, max_length=100)
@@ -310,8 +311,11 @@ class EmployeeCreate(BaseModel):
     department: Optional[str] = Field(None, max_length=100)
     start_date: Optional[datetime] = None
     employment_type: Optional[str] = Field(None, max_length=30)
-    salary_base: Optional[float] = None
+    salary_monthly: Optional[float] = None
+    wage_daily: Optional[float] = None
     contact_phone: Optional[str] = Field(None, max_length=20)
+    contact_address: Optional[str] = None
+    note: Optional[str] = None
     user_id: Optional[str] = Field(None, description="Link to existing user (optional)")
 
     @validator('emp_code')
@@ -321,11 +325,17 @@ class EmployeeCreate(BaseModel):
         return v.upper()
 
 class EmployeeUpdate(BaseModel):
+    first_name: Optional[str] = Field(None, min_length=1, max_length=50)
+    last_name: Optional[str] = Field(None, min_length=1, max_length=50)
     position: Optional[str] = Field(None, max_length=100)
     department: Optional[str] = Field(None, max_length=100)
+    start_date: Optional[datetime] = None
     employment_type: Optional[str] = Field(None, max_length=30)
-    salary_base: Optional[float] = None
+    salary_monthly: Optional[float] = None
+    wage_daily: Optional[float] = None
     contact_phone: Optional[str] = Field(None, max_length=20)
+    contact_address: Optional[str] = None
+    note: Optional[str] = None
     active_status: Optional[bool] = None
 
 class EmployeeRecord(BaseModel):
@@ -337,11 +347,61 @@ class EmployeeRecord(BaseModel):
     department: Optional[str]
     start_date: Optional[datetime]
     employment_type: Optional[str]
-    salary_base: Optional[float]
+    salary_monthly: Optional[float]
+    wage_daily: Optional[float]
     contact_phone: Optional[str]
+    contact_address: Optional[str]
+    note: Optional[str]
     active_status: bool
     user_id: Optional[str]
 
     class Config:
         from_attributes = True
+
+# ===== SystemAdmin User-Employee Assignment Schemas =====
+class UserEmployeeAssignRequest(BaseModel):
+    """Schema for SystemAdmin to assign user to employee"""
+    user_id: str = Field(..., description="User ID to assign")
+    employee_id: int = Field(..., description="Employee ID to assign to")
+
+class UserEmployeeUnassignRequest(BaseModel):
+    """Schema for SystemAdmin to unassign user from employee"""
+    user_id: str = Field(..., description="User ID to unassign")
+
+class UserWithEmployee(BaseModel):
+    """User with their assigned employee information"""
+    id: str
+    username: str
+    role: str
+    is_active: bool
+    created_at: datetime
+    employee_id: Optional[int]
+    employee: Optional[EmployeeRecord] = None
+    
+    class Config:
+        from_attributes = True
+
+class EmployeeWithUser(BaseModel):
+    """Employee with their assigned user information"""
+    employee_id: int
+    emp_code: str
+    first_name: str
+    last_name: str
+    position: Optional[str]
+    department: Optional[str]
+    start_date: Optional[datetime]
+    employment_type: Optional[str]
+    active_status: bool
+    user_id: Optional[str]
+    user: Optional[dict] = None  # Basic user info without sensitive data
+    
+    class Config:
+        from_attributes = True
+
+class AssignmentResponse(BaseModel):
+    """Response for assignment operations"""
+    success: bool
+    message: str
+    user_id: Optional[str] = None
+    employee_id: Optional[int] = None
 
