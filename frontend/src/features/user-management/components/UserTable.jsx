@@ -219,7 +219,7 @@ const UserTable = ({ users, onEdit, onDelete, onToggleStatus, onEmployeeAssign, 
                     <Button
                       variant="destructive"
                       size="xs"
-                      onClick={() => onDelete(user.id)}
+                      onClick={() => onDelete(user)}
                       className="h-6 px-3 flex items-center space-x-1 text-xs bg-red-500 hover:bg-red-600 text-white border-red-500"
                     >
                       <Trash2 className="h-3 w-3" />

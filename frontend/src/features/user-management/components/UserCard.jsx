@@ -136,7 +136,7 @@ const UserCard = ({ user, onEdit, onDelete, onToggleStatus, loading }) => {
             <Button
               variant="destructive"
               size="xs"
-              onClick={() => onDelete(user.id)}
+              onClick={() => onDelete(user)}
               className="col-span-3 h-6 flex items-center justify-center space-x-1 text-xs bg-red-500 hover:bg-red-600 text-white border-red-500"
             >
               <Trash2 className="h-3 w-3" />

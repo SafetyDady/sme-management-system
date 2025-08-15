@@ -266,6 +266,11 @@ export const userAPI = {
       // ลบ is_active ออก ให้ backend จัดการเอง
     };
     
+    // Add employee_id if provided
+    if (userData.employee_id) {
+      cleanUserData.employee_id = userData.employee_id;
+    }
+    
     console.log('🔍 Clean user data:', cleanUserData);
     
     try {
@@ -282,8 +287,28 @@ export const userAPI = {
 
   updateUser: async (userId, userData) => {
     console.log('🔍 Updating user:', userId, userData);
+    
+    // Clean and prepare update data
+    const cleanUserData = {
+      username: userData.username?.trim(),
+      email: userData.email?.trim()?.toLowerCase(),
+      role: userData.role
+    };
+    
+    // Add password if provided
+    if (userData.password && userData.password.trim()) {
+      cleanUserData.password = userData.password;
+    }
+    
+    // Add employee_id if provided (including null to unassign)
+    if (userData.hasOwnProperty('employee_id')) {
+      cleanUserData.employee_id = userData.employee_id;
+    }
+    
+    console.log('🔍 Clean update data:', cleanUserData);
+    
     try {
-      const response = await api.put(`/api/users/${userId}`, userData);
+      const response = await api.put(`/api/users/${userId}`, cleanUserData);
       console.log('✅ Update user success:', response.data);
       return response.data;
     } catch (error) {

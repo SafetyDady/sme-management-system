@@ -306,6 +306,17 @@ const UserManagement = () => {
   };
 
   const handleDelete = async (targetUser) => {
+    // Debug และ validation
+    console.log('🔍 Delete target user:', targetUser);
+    
+    if (!targetUser || !targetUser.id) {
+      console.error('❌ Invalid user data:', targetUser);
+      toast.error('Invalid user data. Please refresh and try again.');
+      return;
+    }
+    
+    console.log('🔍 User ID to delete:', targetUser.id);
+    
     const canManage = canManageUser(targetUser);
     
     if (!canManage) {
@@ -315,6 +326,7 @@ const UserManagement = () => {
     
     if (window.confirm(`Are you sure you want to delete user "${targetUser.username}"?`)) {
       try {
+        console.log('🗑️ Calling deleteUser API with ID:', targetUser.id);
         await userAPI.deleteUser(targetUser.id);
         
         // Remove from local state
