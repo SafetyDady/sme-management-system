@@ -58,13 +58,23 @@ const UserManagement = () => {
         }
         
         console.log('🔍 Calling userAPI.getUsers()...');
-        const usersData = await userAPI.getUsers();
-        console.log('✅ Raw users data received:', usersData);
+        const response = await userAPI.getUsers();
+        console.log('✅ Raw users data received:', response);
         
-        if (!Array.isArray(usersData)) {
-          console.error('❌ Users data is not an array:', usersData);
+        // Extract users array from response - API returns {users: [...], count: N}
+        let usersData;
+        if (response && typeof response === 'object' && Array.isArray(response.users)) {
+          usersData = response.users;
+        } else if (Array.isArray(response)) {
+          usersData = response;
+        } else {
+          console.error('❌ Invalid response format:', response);
           throw new Error('Invalid users data format');
         }
+        
+        console.log('🔍 Extracted users data:', usersData);
+        console.log('🔍 Is array?', Array.isArray(usersData));
+        console.log('🔍 Users count:', usersData.length);
         
         // Transform API data to match frontend expectations
         const transformedUsers = usersData.map(user => ({
