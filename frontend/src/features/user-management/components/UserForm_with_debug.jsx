@@ -14,8 +14,8 @@ const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
     username: '',
     email: '',
     password: '',
-    role: 'user',
-    employee_id: null
+    role: 'user',  // เปลี่ยนจาก employee เป็น user
+    employee_id: null  // เพิ่ม employee_id
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
@@ -24,31 +24,45 @@ const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
 
   // Initialize form data when user prop changes
   useEffect(() => {
+    console.log('� useEffect triggered - Form Initialization', {
+      user,
+      hasUser: !!user,
+      userRole: user?.role,
+      userEmployeeId: user?.employee_id,
+      availableEmployeesCount: availableEmployees.length,
+      availableRolesCount: AVAILABLE_ROLES.length
+    });
+    
     if (user) {
       const newFormData = {
         username: user.username || '',
         email: user.email || '',
-        password: '',
-        role: user.role || 'user',
+        password: '', // Never pre-fill password
+        role: user.role || 'user', // แก้ไขให้ใช้ 'user' เป็นค่า default ที่สอดคล้องกัน
         employee_id: user.employee_id || null
       };
+      console.log('✅ EDIT MODE - Setting form data:', newFormData);
+      console.log('🎯 Role validation - Is role in AVAILABLE_ROLES?', 
+        AVAILABLE_ROLES.includes(user.role || 'user'));
       setFormData(newFormData);
     } else {
       const newFormData = {
         username: '',
         email: '',
         password: '',
-        role: 'user',
+        role: 'user',  // เปลี่ยนจาก employee เป็น user
         employee_id: null
       };
+      console.log('✅ CREATE MODE - Setting form data:', newFormData);
       setFormData(newFormData);
     }
     setErrors({});
-  }, [user, availableEmployees]);
+  }, [user, availableEmployees]); // เพิ่ม availableEmployees ใน dependency
 
   // Load unassigned employees for admin roles and above
   useEffect(() => {
     const fetchUnassignedEmployees = async () => {
+      // Allow admin, system_admin, and superadmin to manage employee assignments
       if (currentUser?.role === 'admin' || currentUser?.role === 'system_admin' || currentUser?.role === 'superadmin') {
         setLoadingEmployees(true);
         try {
@@ -61,11 +75,18 @@ const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
 
           if (response.ok) {
             const employees = await response.json();
-            let employeeOptions = [...employees];
             
+            // If user has assigned employee, fetch that employee's details
+            let employeeOptions = [...employees];
+            console.log('📋 Available employees from API:', employees);
             if (user?.employee_id) {
+              console.log('🔍 User has employee_id:', user.employee_id);
+              
+              // Find if current employee is in unassigned list
               const isCurrentInList = employees.find(emp => (emp.id || emp.employee_id) === user.employee_id);
               if (!isCurrentInList) {
+                console.log('➕ Need to fetch current employee details');
+                // Fetch current employee details
                 try {
                   const empResponse = await fetch(`/api/employees/${user.employee_id}`, {
                     headers: {
@@ -76,6 +97,7 @@ const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
                   
                   if (empResponse.ok) {
                     const currentEmp = await empResponse.json();
+                    console.log('🔍 Raw current employee data:', currentEmp);
                     const currentEmployee = {
                       id: currentEmp.employee_id || currentEmp.id,
                       employee_id: currentEmp.employee_id || currentEmp.id,
@@ -84,10 +106,13 @@ const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
                       last_name: currentEmp.last_name || 'Employee',
                       department: currentEmp.department || null,
                       position: currentEmp.position || null,
-                      is_current: true
+                      is_current: true // Mark as current assignment
                     };
+                    console.log('✅ Processed current employee:', currentEmployee);
                     employeeOptions = [currentEmployee, ...employees];
                   } else {
+                    console.error('❌ Failed to fetch employee details, status:', empResponse.status);
+                    // Fallback: create a minimal current employee entry
                     const fallbackEmployee = {
                       id: user.employee_id,
                       employee_id: user.employee_id,
@@ -98,9 +123,12 @@ const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
                       position: null,
                       is_current: true
                     };
+                    console.log('🔄 Using fallback employee:', fallbackEmployee);
                     employeeOptions = [fallbackEmployee, ...employees];
                   }
                 } catch (empError) {
+                  console.error('❌ Error fetching current employee details:', empError);
+                  // Fallback: create a minimal current employee entry
                   const fallbackEmployee = {
                     id: user.employee_id,
                     employee_id: user.employee_id,
@@ -111,20 +139,26 @@ const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
                     position: null,
                     is_current: true
                   };
+                  console.log('🔄 Using fallback employee (error):', fallbackEmployee);
                   employeeOptions = [fallbackEmployee, ...employees];
                 }
               } else {
+                console.log('✅ Current employee already in unassigned list');
+                // Mark the current employee as current in the existing list
                 const currentEmployeeInList = employeeOptions.find(emp => (emp.id || emp.employee_id) === user.employee_id);
                 if (currentEmployeeInList) {
                   currentEmployeeInList.is_current = true;
                 }
               }
             }
+            console.log('📝 Final employee options:', employeeOptions);
             setAvailableEmployees(employeeOptions);
           } else {
+            console.error('Failed to fetch employees');
             setAvailableEmployees([]);
           }
         } catch (error) {
+          console.error('Error loading employees:', error);
           setAvailableEmployees([]);
         } finally {
           setLoadingEmployees(false);
@@ -141,6 +175,7 @@ const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
       [field]: value
     }));
     
+    // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
@@ -164,7 +199,7 @@ const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
     
     if (!user && !formData.password) {
       newErrors.password = 'Password is required for new users';
-    } else if (formData.password && formData.password.length < 8) {
+    } else if (formData.password && formData.password.length < 8) {  // เปลี่ยนจาก 6 เป็น 8
       newErrors.password = 'Password must be at least 8 characters';
     }
     
@@ -183,14 +218,19 @@ const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
       return;
     }
     
+    // Prepare submit data (exclude password if empty for updates)
     const submitData = { ...formData };
     if (user && !submitData.password) {
       delete submitData.password;
     }
     
+    // Debug log
+    console.log('🔍 UserForm submitting data:', submitData);
+    
     onSubmit(submitData);
   };
 
+  // Filter available roles based on current user's permissions
   const getAvailableRoles = () => {
     return AVAILABLE_ROLES.filter(role => 
       canEditRole(currentUser?.role, role)
@@ -274,7 +314,10 @@ const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
           <Label htmlFor="employee_id">Assign Employee (Optional)</Label>
           <Select 
             value={formData.employee_id ? formData.employee_id.toString() : 'none'} 
-            onValueChange={(value) => handleInputChange('employee_id', value === 'none' ? null : parseInt(value))}
+            onValueChange={(value) => {
+              console.log('👥 Employee changed to:', value);
+              handleInputChange('employee_id', value === 'none' ? null : parseInt(value));
+            }}
             disabled={submitting || loadingEmployees}
           >
             <SelectTrigger>
@@ -302,6 +345,10 @@ const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
           {loadingEmployees && (
             <p className="text-sm text-gray-500">Loading available employees...</p>
           )}
+          {/* DEBUG: Show current employee state */}
+          <div className="text-xs text-gray-500">
+            DEBUG - Employee ID: {formData.employee_id} | Available: {availableEmployees.length} employees
+          </div>
         </div>
       )}
 
@@ -310,7 +357,10 @@ const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
         <Label htmlFor="role">Role</Label>
         <Select 
           value={formData.role || ""} 
-          onValueChange={(value) => handleInputChange('role', value)}
+          onValueChange={(value) => {
+            console.log('🎭 Role changed to:', value);
+            handleInputChange('role', value);
+          }}
           disabled={submitting}
         >
           <SelectTrigger className={errors.role ? 'border-red-500' : ''}>
@@ -330,6 +380,10 @@ const UserForm = ({ user, onSubmit, onCancel, submitting }) => {
         {errors.role && (
           <p className="text-sm text-red-500">{errors.role}</p>
         )}
+        {/* DEBUG: Show current role state */}
+        <div className="text-xs text-gray-500">
+          DEBUG - Current role: "{formData.role}" | Valid role: {AVAILABLE_ROLES.includes(formData.role) ? '✅' : '❌'}
+        </div>
       </div>
 
       {/* Form Actions */}

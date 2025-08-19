@@ -150,7 +150,7 @@ class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50)
     email: Optional[str] = None
     password: Optional[str] = Field(None, min_length=6, max_length=128)
-    role: Optional[Literal["user", "admin", "superadmin", "hr"]] = Field(None, description="User role")
+    role: Optional[Literal["user", "employee", "engineer", "purchasing", "store", "hr", "supervisor", "manager", "admin", "system_admin", "director", "superadmin"]] = Field(None, description="User role")
     is_active: Optional[bool] = None
     employee_id: Optional[int] = Field(None, description="Employee ID for assignment")
     # Employee fields (all optional)
